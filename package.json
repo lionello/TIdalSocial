@@ -1,0 +1,41 @@
+{
+  "name": "tidalsocial",
+  "version": "1.0.0",
+  "description": "Tidal Social",
+  "main": "index.js",
+  "scripts": {
+    "build": "npm run build-ts",
+    "build-ts": "tsc",
+    "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
+    "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
+    "test": "mocha -r ts-node/register tests/**/*.test.ts",
+    "start": "node index.js",
+    "watch-ts": "tsc -w"
+  },
+  "author": "Lionello Lunesu",
+  "license": "ISC",
+  "dependencies": {
+    "jsdom": "^16.4.0",
+    "node-fetch": "^2.6.1",
+    "parse5": "^6.0.1"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.2.15",
+    "@types/jsdom": "^16.2.6",
+    "@types/mocha": "^8.2.1",
+    "@types/node-fetch": "^2.5.8",
+    "@types/parse5": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.15.1",
+    "@typescript-eslint/parser": "^4.15.1",
+    "chai": "^4.3.0",
+    "eslint": "^7.20.0",
+    "mocha": "^8.3.0",
+    "nyc": "^15.1.0",
+    "prettier": "^2.2.1",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.5"
+  },
+  "prettier": {
+    "semi": false
+  }
+}
