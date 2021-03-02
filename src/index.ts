@@ -80,7 +80,7 @@ async function importFromURLCached(url: string): Promise<Song[]> {
 
 async function main() {
   for (const guid of playlists) {
-    const songs = await importPlaylistCached(guid)
+    const songs = await importFromURLCached(getPlaylistURL(guid))
     // for (const track of songs) {
     //   console.log(
     //     track.trackName,

@@ -15,8 +15,8 @@ app.post("/url", express.urlencoded({ extended: true }), (req, res) => {
   res.redirect("/")
 })
 
-app.use("/js", express.static(makeAbsolute("dist")))
+app.use("/js", express.static(makeAbsolute("../dist")))
 
 app.get("/", (req, res) => {
-  res.sendFile(makeAbsolute("model/static/index.html"))
+  res.sendFile(makeAbsolute("../model/static/index.html"))
 })
