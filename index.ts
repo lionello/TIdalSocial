@@ -1,11 +1,16 @@
 import { JSDOM } from "jsdom"
-// import * as Artists from "./data.json"
 import { promises as FS } from "fs"
 import * as Path from "path"
+import { Song, parsePlaylistDocument } from "./parse"
+import { app } from "./app"
 
-import { Song, parsePlaylistDocument } from "./parse.js"
-
+const { PORT: port = 3000 } = process.env
 const CacheFolder = "cache"
+
+app.listen(port, function () {
+  console.log(`server started at http://localhost:${this.address().port}`)
+})
+
 // function isSuperset<T>(set: Set<T>, subset: Iterable<T>): boolean {
 //   for (const elem of subset) {
 //     if (!set.has(elem)) {
@@ -41,25 +46,34 @@ const playlists = [
   "ed06c151-94fc-4ad7-88d5-a83c39fe62fd",
 ]
 
-async function importPlaylist(guid: string): Promise<Song[]> {
-  const dom = await JSDOM.fromURL("https://tidal.com/browse/playlist/" + guid) //, { runScripts: "dangerously" })
+async function importFromURL(url: string): Promise<Song[]> {
+  const dom = await JSDOM.fromURL(url) // , { runScripts: "dangerously" })
   return parsePlaylistDocument(dom.window.document)
 }
 
-async function importMix(url: string): Promise<Song[]> {
-  const dom = await JSDOM.fromURL(url)
-  // TODO "https://listen.tidal.com/mix/0104f851efc2d5803c03c6706572aa"
-  throw new Error("Not implemented")
+function getPlaylistURL(guid: string): string {
+  return "https://tidal.com/browse/playlist/" + guid
 }
 
-async function importPlaylistCached(guid: string): Promise<Song[]> {
-  const cacheFile = Path.join(CacheFolder, guid + "-playlist.json")
+// TODO "https://listen.tidal.com/mix/0104f851efc2d5803c03c6706572aa"
+function getMixURL(id: string): string {
+  return "https://tidal.com/browse/mix/" + id
+}
+
+function getCacheName(url: string): string {
+  const [, type, id] = /([^/]+)\/([^/]+)$/.exec(url)
+  return `${id}-${type}.json`
+}
+
+async function importFromURLCached(url: string): Promise<Song[]> {
+  const cacheFile = Path.join(CacheFolder, getCacheName(url))
   try {
     return JSON.parse(await FS.readFile(cacheFile, "utf-8"))
   } catch (e) {
-    // ignore
+    // ignore errors, just refetch
+    console.warn(e)
   }
-  const songs = await importPlaylist(guid)
+  const songs = await importFromURL(url)
   await FS.writeFile(cacheFile, JSON.stringify(songs))
   return songs
 }
@@ -67,16 +81,16 @@ async function importPlaylistCached(guid: string): Promise<Song[]> {
 async function main() {
   for (const guid of playlists) {
     const songs = await importPlaylistCached(guid)
-    for (const track of songs) {
-      console.log(
-        track.trackName,
-        "|",
-        track.artists.join(","),
-        "|",
-        track.albumTitle
-        // track.artists.map((a) => Artists[a.toLowerCase()])
-      )
-    }
+    // for (const track of songs) {
+    //   console.log(
+    //     track.trackName,
+    //     "|",
+    //     track.artists.join(","),
+    //     "|",
+    //     track.albumTitle
+    //     // track.artists.map((a) => Artists[a.toLowerCase()])
+    //   )
+    // }
   }
 }
 

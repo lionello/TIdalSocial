@@ -1,12 +1,12 @@
 {
   "compilerOptions": {
+    "esModuleInterop": true,
     "module": "CommonJS",
-    "target": "ES2019",
-    "jsx": "preserve",
     "moduleResolution": "node",
-    "strictFunctionTypes": true,
+    "outDir": "dist",
     "sourceMap": true,
-    "outDir": "dist"
+    "strictFunctionTypes": true,
+    "target": "ES2019"
   },
   "exclude": ["node_modules", "**/node_modules/*", "dist", "tests"]
 }
