@@ -2,14 +2,14 @@
   "name": "tidalsocial",
   "version": "1.0.0",
   "description": "Tidal Social",
-  "main": "index.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "npm run build-ts",
     "build-ts": "tsc",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
     "test": "mocha -r ts-node/register tests/**/*.test.ts",
-    "start": "node index.js",
+    "start": "node dist/index.js",
     "watch-ts": "tsc -w"
   },
   "author": "Lionello Lunesu",
