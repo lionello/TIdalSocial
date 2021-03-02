@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Tidal Social",
   "main": "dist/index.js",
+  "private": true,
   "scripts": {
     "prestart": "npm run build",
     "build": "npm run build-ts",
