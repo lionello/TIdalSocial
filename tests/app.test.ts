@@ -13,7 +13,7 @@ describe("app", function () {
   it("POST /url", function (done) {
     request(app)
       .post("/url")
-      .send("playlist_url=abc")
+      .send("playlist_url=https://google.com")
       .expect(302)
       .expect("Location", "/")
       .end(done)
