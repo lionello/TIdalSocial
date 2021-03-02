@@ -1,3 +1,8 @@
+import { promises as FS } from "fs"
+import * as Path from "path"
+import { JSDOM } from "jsdom"
+
+const CacheFolder = "cache"
 export interface Song {
   trackName: string
   artists: string[]
@@ -33,4 +38,36 @@ export function parsePlaylistDocument(playlist: Document): Song[] {
     playlist.getElementsByClassName("track-item has-info")
   )
   return trackItems.map((trackItem) => parseTrackItem(trackItem))
+}
+
+async function importFromURL(url: string): Promise<Song[]> {
+  const dom = await JSDOM.fromURL(url) // , { runScripts: "dangerously" })
+  return parsePlaylistDocument(dom.window.document)
+}
+
+export function getPlaylistURL(guid: string): string {
+  return "https://tidal.com/browse/playlist/" + guid
+}
+
+// TODO "https://listen.tidal.com/mix/0104f851efc2d5803c03c6706572aa"
+export function getMixURL(id: string): string {
+  return "https://tidal.com/browse/mix/" + id
+}
+
+function getCacheName(url: string): string {
+  const [, type, id] = /([^/]+)\/([^/]+)$/.exec(url)
+  return `${id}-${type}.json`
+}
+
+export async function importFromURLCached(url: string): Promise<Song[]> {
+  const cacheFile = Path.join(CacheFolder, getCacheName(url))
+  try {
+    return JSON.parse(await FS.readFile(cacheFile, "utf-8"))
+  } catch (e) {
+    // ignore errors, just refetch
+    console.warn(e)
+  }
+  const songs = await importFromURL(url)
+  await FS.writeFile(cacheFile, JSON.stringify(songs))
+  return songs
 }
