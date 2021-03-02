@@ -3,39 +3,21 @@
 </head>
 <body>
     tes
-    <form id="form1">
+    <form id="form1" method="POST" action="/url">
         <input type="url" id="playlist_url" value="https://tidal.com/browse/playlist/3751614e-3827-4860-819c-b9474a000dbb">
         <input type="submit">
     </form>
 
-    <div style="position: relative; padding-bottom: 100%; height: 0; overflow: hidden; max-width: 100%;">
+    <!-- <div style="position: relative; padding-bottom: 100%; height: 0; overflow: hidden; max-width: 100%;">
         <iframe src="https://embed.tidal.com/playlists/3751614e-3827-4860-819c-b9474a000dbb?layout=gridify" frameborder="0" allowfullscreen style="position: absolute; top: 0; left: 0; width: 100%; height: 1px; min-height: 100%; margin: 0 auto;"></iframe>
-    </div>
+    </div> -->
 
-    <script type="module" src="js/parse.js"></script>
     <script type="text/javascript">
-    import {parsePlaylistDocument} from "js/parse.js";
     (function () {
         function E(id) { return document.getElementById(id); }
-        function fetch(url) {
-            let xhr = new XMLHttpRequest();
-            xhr.open("GET", url, true);
-            xhr.responseType = "document";
-            xhr.onreadystatechange = function (x) {
-                if (xhr.readyState == 4) {
-                    parsePlaylistDocument(xhr.responseXML);
-                }
-            }
-            xhr.send();
-        }
-        function post() {
-            let xhr = new XMLHttpRequest()
-            xhr.open("/playlist")
-        }
         function init(e) {
             const playlist_url = document.getElementById("playlist_url");
             playlist_url.focus();
-            E('form1').onsubmit = function (e) { e.preventDefault(); fetch(playlist_url.value); return false; };
         }
 
         setTimeout(init, 0)

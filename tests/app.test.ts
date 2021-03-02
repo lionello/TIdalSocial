@@ -1,4 +1,3 @@
-import { assert } from "chai"
 import { describe } from "mocha"
 
 import { app } from "../src/app"
@@ -14,7 +13,7 @@ describe("app", function () {
   it("POST /url", function (done) {
     request(app)
       .post("/url")
-      .send("asd")
+      .send("playlist_url=abc")
       .expect(302)
       .expect("Location", "/")
       .end(done)
