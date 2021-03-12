@@ -1,3 +1,5 @@
 .envrc
 node_modules/
 dist/
+.venv/
+__pycache__/
