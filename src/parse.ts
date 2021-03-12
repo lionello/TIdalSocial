@@ -1,17 +1,19 @@
 import { promises as FS } from "fs"
 import * as Path from "path"
 import { JSDOM } from "jsdom"
+import { Playlist } from "./model"
 
 const CacheFolder = "cache"
-export interface Song {
+
+export interface Track {
   trackName: string
   artists: string[]
-  albumTitle: string
+  albumTitle?: string
 }
 
 const removeParens = / \[[^\]]+\]| \([^)]+\)/g
 
-function parseTrackItem(trackItem: Element): Song {
+function parseTrackItem(trackItem: Element): Track {
   const trackInfo = trackItem.getElementsByClassName("track-name")[0]
   const trackName = trackInfo
     .getElementsByTagName("a")[0]
@@ -33,14 +35,14 @@ function parseTrackItem(trackItem: Element): Song {
   }
 }
 
-export function parsePlaylistDocument(playlist: Document): Song[] {
+export function parsePlaylistDocument(playlist: Document): Track[] {
   const trackItems = Array.from(
     playlist.getElementsByClassName("track-item has-info")
   )
   return trackItems.map((trackItem) => parseTrackItem(trackItem))
 }
 
-async function importFromURL(url: string): Promise<Song[]> {
+async function importFromURL(url: string): Promise<Track[]> {
   const dom = await JSDOM.fromURL(url) // , { runScripts: "dangerously" })
   return parsePlaylistDocument(dom.window.document)
 }
@@ -59,7 +61,7 @@ function getCacheName(url: string): string {
   return `${id}-${type}.json`
 }
 
-export async function importFromURLCached(url: string): Promise<Song[]> {
+export async function importFromURLCached(url: string): Promise<Playlist> {
   const cacheFile = Path.join(CacheFolder, getCacheName(url))
   try {
     return JSON.parse(await FS.readFile(cacheFile, "utf-8"))
@@ -67,7 +69,8 @@ export async function importFromURLCached(url: string): Promise<Song[]> {
     // ignore errors, just refetch
     console.warn(e)
   }
-  const songs = await importFromURL(url)
-  await FS.writeFile(cacheFile, JSON.stringify(songs))
-  return songs
+  const tracks = await importFromURL(url)
+  const playlist = { url, tracks }
+  await FS.writeFile(cacheFile, JSON.stringify(playlist))
+  return playlist
 }

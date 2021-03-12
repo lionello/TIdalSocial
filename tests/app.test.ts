@@ -13,7 +13,9 @@ describe("app", function () {
   it("POST /url", function (done) {
     request(app)
       .post("/url")
-      .send("playlist_url=https://google.com")
+      .send(
+        "playlist_url=https://tidal.com/browse/playlist/3751614e-3827-4860-819c-b9474a000dbb"
+      )
       .expect(302)
       .expect("Location", "/")
       .end(done)
