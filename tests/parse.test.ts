@@ -1,6 +1,12 @@
 import { assert } from "chai"
 import { describe } from "mocha"
-import { importFromURLCached, getPlaylistURL } from "../src/parse"
+import {
+  importFromURLParsed,
+  getPlaylistURL,
+  getArtistURL,
+  getMixURL,
+  setOffline,
+} from "../src/parse"
 
 const playlists = [
   "6ec29a72-53a6-492b-bb75-97f0f13a659f",
@@ -29,10 +35,35 @@ const playlists = [
 ]
 
 describe("parse", function () {
+  before(function () {
+    setOffline(true)
+  })
+
+  it("getPlaylistURL", function () {
+    assert.equal(getPlaylistURL("xy"), "https://tidal.com/browse/playlist/xy")
+  })
+
+  it("getArtistURL", function () {
+    assert.equal(getArtistURL(42), "https://tidal.com/browse/artist/42")
+  })
+
+  it("getMixURL", function () {
+    assert.equal(getMixURL("foo"), "https://tidal.com/browse/mix/foo")
+  })
+
   for (const guid of playlists) {
-    it("parse " + guid, async function () {
-      const songs = await importFromURLCached(getPlaylistURL(guid))
-      assert.isNotEmpty(songs)
+    it("parse playlist " + guid, async function () {
+      const url = getPlaylistURL(guid)
+      const songs = await importFromURLParsed(url)
+      assert.isNotEmpty(songs.tracks)
+      assert.strictEqual(songs.url, url)
     })
   }
+
+  it("parse artist", async function () {
+    const url = getArtistURL(50)
+    const songs = await importFromURLParsed(url)
+    assert.isNotEmpty(songs.tracks)
+    assert.strictEqual(songs.url, url)
+  })
 })

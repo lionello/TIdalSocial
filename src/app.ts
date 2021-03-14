@@ -1,8 +1,8 @@
 import express from "express"
 import * as Path from "path"
 import helmet from "helmet"
-import { importFromURLCached } from "./parse"
-import { process_playlist } from "./model"
+import { importFromURLParsed } from "./parse"
+import { processPlaylist } from "./model"
 
 const SafeURL = "https://tidal.com/browse/"
 
@@ -31,9 +31,9 @@ app.post("/url", express.urlencoded({ extended: true }), (req, res, next) => {
   if (typeof playlist_url !== "string" || !playlist_url.startsWith(SafeURL)) {
     res.status(400).send("Not a Tidal URL")
   } else {
-    importFromURLCached(playlist_url)
+    importFromURLParsed(playlist_url)
       .then((playlist) => {
-        return process_playlist(playlist)
+        return processPlaylist(playlist)
       })
       .then((response) => {
         console.debug(response)

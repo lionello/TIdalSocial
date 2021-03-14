@@ -1,23 +1,33 @@
 import fetch from "node-fetch"
 import { Track } from "./parse"
 
-export interface Playlist {
+export interface TrackList {
   title?: string
   url: string
   tracks: Track[]
 }
+
+const MODEL_HOST = "http://localhost:5000"
 
 export interface Recommendation {
   playlists: string[]
   artists: string[]
 }
 
-export async function process_playlist(
-  playlist: Playlist,
-  { update = true }: { update?: boolean } = {}
+type Options = {
+  update?: boolean
+  recommend?: boolean
+}
+
+export async function processPlaylist(
+  playlist: TrackList,
+  options: Options = {}
 ): Promise<Recommendation> {
+  const { update = true, recommend = true } = options
   const response = await fetch(
-    `http://localhost:5000/playlist?update=${update ? 1 : 0}`,
+    `${MODEL_HOST}/playlist?update=${update ? 1 : 0}&recommend=${
+      recommend ? 1 : 0
+    }`,
     {
       method: "POST",
       body: JSON.stringify(playlist),

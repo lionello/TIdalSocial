@@ -6,6 +6,7 @@
     "outDir": "dist",
     "sourceMap": true,
     "strictFunctionTypes": true,
+    "strictNullChecks": true,
     "target": "ES2019"
   },
   "exclude": ["node_modules", "**/node_modules/*", "dist", "tests"]

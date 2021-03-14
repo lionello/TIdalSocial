@@ -3,3 +3,8 @@ node_modules/
 dist/
 .venv/
 __pycache__/
+lastfm/
+*.npz
+cache/
+artists/
+db/

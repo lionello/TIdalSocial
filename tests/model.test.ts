@@ -1,10 +1,10 @@
 import { assert } from "chai"
 import { describe } from "mocha"
-import { process_playlist } from "../src/model"
+import { processPlaylist } from "../src/model"
 
 describe("model", function () {
-  it("process_playlist", async function () {
-    const playlist = await process_playlist(
+  it("processPlaylist", async function () {
+    const playlist = await processPlaylist(
       {
         tracks: [{ trackName: "Creep", artists: ["Radiohead"] }],
         url: "https://tidal.com/blah",

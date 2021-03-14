@@ -1,4 +1,5 @@
 import { app } from "./app"
+import { getArtistURL, importFromURLParsed } from "./parse"
 
 const { PORT: port = 3000 } = process.env
 
@@ -16,17 +17,16 @@ app.listen(port, function () {
 // }
 
 async function main(args: string[]) {
-  //   const songs = await importFromURLCached(getPlaylistURL(guid))
-  //   for (const track of songs) {
-  //     console.log(
-  //       track.trackName,
-  //       "|",
-  //       track.artists.join(","),
-  //       "|",
-  //       track.albumTitle
-  //       // track.artists.map((a) => Artists[a.toLowerCase()])
-  //     )
-  //   }
+  // const songs = await importFromURLParsed(getArtistURL(50))
+  // for (const track of songs.tracks) {
+  //   console.log(
+  //     track.trackName,
+  //     "|",
+  //     track.artists.join(","),
+  //     "|",
+  //     track.albumTitle
+  //     // track.artists.map((a) => Artists[a.toLowerCase()])
+  //   )
   // }
 }
 
