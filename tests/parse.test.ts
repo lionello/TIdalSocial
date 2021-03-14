@@ -8,7 +8,7 @@ import {
   setOffline,
 } from "../src/parse"
 
-const playlists = [
+const PLAYLIST_IDS = [
   "6ec29a72-53a6-492b-bb75-97f0f13a659f",
   "131786bd-e063-448b-9d9a-7ad8e029835a",
 
@@ -51,7 +51,7 @@ describe("parse", function () {
     assert.equal(getMixURL("foo"), "https://tidal.com/browse/mix/foo")
   })
 
-  for (const guid of playlists) {
+  for (const guid of PLAYLIST_IDS) {
     it("parse playlist " + guid, async function () {
       const url = getPlaylistURL(guid)
       const songs = await importFromURLParsed(url)

@@ -4,7 +4,7 @@ import helmet from "helmet"
 import { importFromURLParsed } from "./parse"
 import { processPlaylist } from "./model"
 
-const SafeURL = "https://tidal.com/browse/"
+const SAFE_URL = "https://tidal.com/browse/"
 
 export const app = express()
 
@@ -28,7 +28,7 @@ function makeAbsolute(relative: string): string {
 
 app.post("/url", express.urlencoded({ extended: true }), (req, res, next) => {
   const playlist_url = req.body.playlist_url
-  if (typeof playlist_url !== "string" || !playlist_url.startsWith(SafeURL)) {
+  if (typeof playlist_url !== "string" || !playlist_url.startsWith(SAFE_URL)) {
     res.status(400).send("Not a Tidal URL")
   } else {
     importFromURLParsed(playlist_url)
