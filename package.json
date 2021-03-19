@@ -1,14 +1,19 @@
 {
   "name": "tidalsocial",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Tidal Social",
   "main": "dist/index.js",
   "private": true,
+  "type": "module",
+  "engines": {
+    "node": "^12.0"
+  },
   "scripts": {
     "prestart": "npm run build",
     "build": "npm run build-ts",
     "build-ts": "tsc",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
+    "dev": "nodemon .",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
     "test": "mocha -r ts-node/register tests/**/*.test.ts",
     "start": "node .",
@@ -36,6 +41,7 @@
     "chai": "^4.3.0",
     "eslint": "^7.20.0",
     "mocha": "^8.3.0",
+    "nodemon": "^2.0.7",
     "nyc": "^15.1.0",
     "prettier": "^2.2.1",
     "supertest": "^6.1.3",
