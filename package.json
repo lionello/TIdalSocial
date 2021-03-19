@@ -1,6 +1,6 @@
 {
   "name": "tidalsocial",
-  "version": "1.0.17",
+  "version": "1.0.18",
   "description": "Tidal Social",
   "main": "dist/index.js",
   "private": true,
@@ -12,6 +12,7 @@
     "prestart": "npm run build",
     "build": "npm run build-ts",
     "build-ts": "tsc",
+    "bump": "npm version patch -f",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "dev": "nodemon .",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
