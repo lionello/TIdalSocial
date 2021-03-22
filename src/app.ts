@@ -1,5 +1,6 @@
 import express from "express"
 import * as Path from "path"
+import { fileURLToPath } from "url"
 import { processPlaylist } from "./model.js"
 import { importFromURLParsed } from "./parse.js"
 import { VERSION } from "./version.js"
@@ -10,8 +11,9 @@ const DEFAULT_VERSION_TIMEOUT = "60"
 export const app = express()
 
 function dirname(): string {
+  // From https://stackoverflow.com/a/50052194/2017049
   return typeof __dirname === "undefined"
-    ? "/Users/llunesu/tidalsocial/dist" // FIXME
+    ? Path.dirname(fileURLToPath(import.meta.url))
     : __dirname
 }
 
