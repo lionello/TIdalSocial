@@ -18,6 +18,7 @@ function dirname(): string {
 }
 
 function makeAbsolute(relative: string): string {
+  console.log(dirname())
   return Path.join(dirname(), relative)
 }
 
@@ -66,8 +67,8 @@ app.get("/version", (req, res) => {
   req.on("close", () => clearTimeout(timer))
 })
 
-app.use("/js/components", express.static(makeAbsolute("../src/components")))
+app.use("/js/components", express.static(makeAbsolute("../../src/components")))
 
-app.use("/js", express.static(makeAbsolute("../dist/src")))
+app.use("/js", express.static(makeAbsolute(".")))
 
-app.use(express.static(makeAbsolute("../model/static")))
+app.use(express.static(makeAbsolute("../../model/static")))
