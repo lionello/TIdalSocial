@@ -1,3 +1,4 @@
+import { exec } from "child_process"
 import express from "express"
 import * as Path from "path"
 import { fileURLToPath } from "url"
@@ -9,6 +10,7 @@ const SAFE_URL = "https://tidal.com/browse/"
 const DEFAULT_VERSION_TIMEOUT = "60"
 
 export const app = express()
+const defaultPythonPath = process.platform != "win32" ? "python3" : "py"
 
 function dirname(): string {
   // From https://stackoverflow.com/a/50052194/2017049
@@ -72,3 +74,10 @@ app.use("/js/components", express.static(makeAbsolute("../../src/components")))
 app.use("/js", express.static(makeAbsolute(".")))
 
 app.use(express.static(makeAbsolute("../../model/static")))
+
+app.get("/py", (req, res) => {
+  exec(defaultPythonPath + " --version", (err, stdin, stderr) => {
+    if (err) res.status(500).send(err.message)
+    else res.send(stdin + stderr)
+  })
+})
