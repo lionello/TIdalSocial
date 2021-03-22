@@ -1,6 +1,6 @@
 import { promises as FS } from "fs"
 import * as Path from "path"
-import { JSDOM } from "jsdom"
+import * as jsdom from "jsdom"
 import { TrackList } from "./model"
 
 const DB_FOLDER = "db"
@@ -64,12 +64,12 @@ export function parsePlaylistDocument(playlist: Document): Track[] {
 
 async function importFromURL(url: string): Promise<Track[]> {
   if (offlineMode) throw new Error("Parser is in offline mode")
-  const dom = await JSDOM.fromURL(url)
+  const dom = await jsdom.JSDOM.fromURL(url)
   return parsePlaylistDocument(dom.window.document)
 }
 
 function importFromString(html: string): Track[] {
-  const dom = new JSDOM(html)
+  const dom = new jsdom.JSDOM(html)
   return parsePlaylistDocument(dom.window.document)
 }
 

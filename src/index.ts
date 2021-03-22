@@ -1,12 +1,6 @@
 import { app } from "./app.js"
 import { importFromURLParsed } from "./parse.js"
-import {
-  ChildProcess,
-  spawn,
-  SpawnOptions,
-  exec,
-  execSync,
-} from "child_process"
+import { execSync } from "child_process"
 
 const { PORT: port = 3000 } = process.env
 
