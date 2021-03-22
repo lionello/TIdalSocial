@@ -1,5 +1,12 @@
-import { app } from "./app"
-import { getArtistURL, importFromURLParsed } from "./parse"
+import { app } from "./app.js"
+import { importFromURLParsed } from "./parse.js"
+import {
+  ChildProcess,
+  spawn,
+  SpawnOptions,
+  exec,
+  execSync,
+} from "child_process"
 
 const { PORT: port = 3000 } = process.env
 
@@ -16,17 +23,25 @@ app.listen(port, function () {
 //   return true
 // }
 
+async function bootstrap(url: string) {
+  const songs = await importFromURLParsed(url)
+  for (const track of songs.tracks) {
+    console.log(
+      track.trackName,
+      "|",
+      track.artists.join(","),
+      "|",
+      track.albumTitle
+      // track.artists.map((a) => Artists[a.toLowerCase()])
+    )
+  }
+}
+
 async function main(args: string[]) {
-  // const songs = await importFromURLParsed(getArtistURL(50))
-  // for (const track of songs.tracks) {
-  //   console.log(
-  //     track.trackName,
-  //     "|",
-  //     track.artists.join(","),
-  //     "|",
-  //     track.albumTitle
-  //     // track.artists.map((a) => Artists[a.toLowerCase()])
-  //   )
+  console.log(execSync("py --version").toString())
+  console.log(execSync("python3 --version").toString())
+  // for (const guid of PLAYLISTS) {
+  //   await bootstrap(getPlaylistURL(guid))
   // }
 }
 

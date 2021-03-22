@@ -1,13 +1,13 @@
 {
   "compilerOptions": {
     "esModuleInterop": true,
-    "module": "CommonJS",
+    "module": "es2015",
     "moduleResolution": "node",
     "outDir": "dist",
     "sourceMap": true,
     "strictFunctionTypes": true,
     "strictNullChecks": true,
-    "target": "ES2019"
+    "target": "es2019"
   },
-  "exclude": ["node_modules", "**/node_modules/*", "dist", "tests"]
+  "exclude": ["node_modules", "**/node_modules/*", "dist"]
 }

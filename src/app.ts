@@ -1,15 +1,22 @@
 import express from "express"
 import * as Path from "path"
-import helmet from "helmet"
-import { importFromURLParsed } from "./parse"
-import { processPlaylist } from "./model"
+import { processPlaylist } from "./model.js"
+import { importFromURLParsed } from "./parse.js"
+import { VERSION } from "./version.js"
 
 const SAFE_URL = "https://tidal.com/browse/"
+const DEFAULT_VERSION_TIMEOUT = "60"
 
 export const app = express()
 
+function dirname(): string {
+  return typeof __dirname === "undefined"
+    ? "/Users/llunesu/tidalsocial/dist" // FIXME
+    : __dirname
+}
+
 function makeAbsolute(relative: string): string {
-  return Path.join(__dirname, relative)
+  return Path.join(dirname(), relative)
 }
 
 // app.use(helmet())
@@ -37,14 +44,28 @@ app.post("/url", express.urlencoded({ extended: true }), (req, res, next) => {
       })
       .then((response) => {
         console.debug(response)
-        res.redirect("/")
+        if (!req.accepts("json")) {
+          res.sendStatus(406)
+        } else {
+          res.send(response)
+        }
       })
       .catch(next)
   }
 })
 
-app.use("/js", express.static(makeAbsolute("../dist")))
-
-app.get("/", (req, res) => {
-  res.sendFile(makeAbsolute("../model/static/index.html"))
+app.get("/version", (req, res) => {
+  const timeout = req.query["timeout"] as string
+  const timer = setTimeout(
+    () => res.send(VERSION),
+    1000 * Number.parseInt(timeout || DEFAULT_VERSION_TIMEOUT)
+  )
+  // Abandon the timer when the client disconnects
+  req.on("close", () => clearTimeout(timer))
 })
+
+app.use("/js/components", express.static(makeAbsolute("../src/components")))
+
+app.use("/js", express.static(makeAbsolute("../dist/src")))
+
+app.use(express.static(makeAbsolute("../model/static")))

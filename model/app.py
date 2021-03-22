@@ -4,6 +4,7 @@ import hmac
 import json
 import os
 import secrets
+import time
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -22,6 +23,7 @@ def base64url(str_or_bytes):
 assert base64url("ö") == b"w7Y"
 
 COMPACT_SEPARATORS = (",", ":")
+CACHE_DIR = Path(__file__).absolute().parent.parent / "db" / "playlist"
 
 
 def jwtHS256(payload, secret_key, jose={}):
@@ -38,6 +40,36 @@ assert (
     jwtHS256(0, b"asdf")
     == b"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.MA.2dy1KBMg0xLfOGeFxww_NmQUWvigXSLeBkk_rp6Y_jE"
 )
+
+
+def load_json(filename):
+    with open(filename, "r") as infile:
+        return json.load(infile)
+
+
+def save_json(filename, obj):
+    with open(filename, "w") as outfile:
+        json.dump(obj, outfile)
+
+
+def sanity_check():
+    return process_playlist(
+        load_json(CACHE_DIR / "5e76c6c2-ed06-4126-8d7f-a0bd6a9a091d-playlist.json"),
+        update=False,
+        recommend=False,
+    )
+
+
+def reset_playlists():
+    model.reset()
+    for f in os.listdir(CACHE_DIR):
+        if f[-5:] == ".json":
+            print("Loading", f)
+            playlist = load_json(CACHE_DIR / f)
+            try:
+                print(process_playlist(playlist, recommend=False))
+            except BadRequest as err:
+                print(str(err))
 
 
 app = Flask(__name__)
@@ -63,8 +95,8 @@ def init():
 
 @app.route("/csrftoken", methods=["POST"])
 def csrftoken():
-    nonce = secrets.token_bytes(16)
-    return jwtHS256(nonce, app.secret_key)
+    now = int(time.time())
+    return jwtHS256({"iat": now, "exp": now + 600}, app.secret_key)
 
 
 @app.route("/")
@@ -94,42 +126,11 @@ def parsejs(filename):
     return send_from_directory("../dist", filename)
 
 
-# @app.before_request
-# def before_request_func():
-#     print("before_request is running!")
-
-
-def load_json(filename):
-    with open(filename, "r") as infile:
-        return json.load(infile)
-
-
-def save_json(filename, obj):
-    with open(filename, "w") as outfile:
-        json.dump(obj, outfile)
-
-
-CACHE_DIR = Path(__file__).absolute().parent.parent / "cache"
-
-
-def sanity_check():
-    return process_playlist(
-        load_json(CACHE_DIR / "5e76c6c2-ed06-4126-8d7f-a0bd6a9a091d-playlist.json"),
-        update=False,
-        recommend=False,
-    )
-
-
-def reset_playlists():
-    model.reset()
-    for f in os.listdir(CACHE_DIR):
-        if f[-5:] == ".json":
-            print("Loading", f)
-            playlist = load_json(CACHE_DIR / f)
-            try:
-                print(process_playlist(playlist, recommend=False))
-            except BadRequest as err:
-                print(str(err))
+@app.before_request
+def require_csrftoken():
+    if request.endpoint == "csrftoken":
+        return
+    # token = request.headers["x-csrftoken"]
 
 
 if __name__ == "__main__":

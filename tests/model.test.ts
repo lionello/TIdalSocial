@@ -1,6 +1,6 @@
 import { assert } from "chai"
 import { describe } from "mocha"
-import { processPlaylist } from "../src/model"
+import { processPlaylist } from "../src/model.js"
 
 describe("model", function () {
   it("processPlaylist", async function () {

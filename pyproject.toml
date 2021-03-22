@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "tidalsocial"
+version = "0.1.0"
+description = "TIdaL Social Model"
+authors = ["Lionello Lunesu <lio+git@lunesu.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+implicit = "^0.4.4"
+nmslib = "^2.1.1"
+Flask = "^1.1.2"
+
+[tool.poetry.dev-dependencies]
+black = "^20.8b1"
+jupyterlab = "^3.0.10"
+ipykernel = "^5.5.0"
+notebook = "^6.2.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

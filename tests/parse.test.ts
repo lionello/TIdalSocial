@@ -6,7 +6,7 @@ import {
   getArtistURL,
   getMixURL,
   setOffline,
-} from "../src/parse"
+} from "../src/parse.js"
 
 const PLAYLIST_IDS = [
   "6ec29a72-53a6-492b-bb75-97f0f13a659f",

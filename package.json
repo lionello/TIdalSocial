@@ -2,21 +2,22 @@
   "name": "tidalsocial",
   "version": "1.0.42",
   "description": "Tidal Social",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "private": true,
   "type": "module",
   "engines": {
     "node": "^12.0"
   },
   "scripts": {
-    "prestart": "npm run build",
     "build": "npm run build-ts",
     "build-ts": "tsc",
     "bump": "npm version patch -f 2>/dev/null | sed 's/^\\([v0-9.]*\\)/export const VERSION = \"\\1\"/' >src/version.ts",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "dev": "nodemon .",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
-    "test": "mocha -r ts-node/register tests/**/*.test.ts",
+    "pretest": "npm run build-ts",
+    "test": "mocha dist/tests",
+    "prestart": "npm run build-ts",
     "start": "node .",
     "watch-ts": "tsc -w"
   },
@@ -46,7 +47,6 @@
     "nyc": "^15.1.0",
     "prettier": "^2.2.1",
     "supertest": "^6.1.3",
-    "ts-node": "^9.1.1",
     "typescript": "^4.1.5"
   },
   "prettier": {
