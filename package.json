@@ -1,6 +1,6 @@
 {
   "name": "tidalsocial",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "description": "Tidal Social",
   "main": "dist/src/index.js",
   "private": true,

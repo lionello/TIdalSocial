@@ -15,7 +15,7 @@ describe("app", function () {
     "/js/parse.js",
     "/js/sync.js",
     "/js/version.js",
-    "/js/components/Tidal.vue",
+    "/components/Tidal.vue",
   ]) {
     it("GET " + path, function (done) {
       request(app).get(path).expect(200).end(done)
