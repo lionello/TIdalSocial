@@ -8,3 +8,4 @@ lastfm/
 cache/
 artists/
 db/
+.direnv/

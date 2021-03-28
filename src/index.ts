@@ -1,6 +1,5 @@
 import { app } from "./app.js"
 import { importFromURLParsed } from "./parse.js"
-import { execSync } from "child_process"
 
 const { PORT: port = 3000 } = process.env
 
@@ -32,8 +31,6 @@ async function bootstrap(url: string) {
 }
 
 async function main(args: string[]) {
-  console.log(execSync("py --version").toString())
-  console.log(execSync("python3 --version").toString())
   // for (const guid of PLAYLISTS) {
   //   await bootstrap(getPlaylistURL(guid))
   // }

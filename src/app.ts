@@ -69,11 +69,9 @@ app.get("/version", (req, res) => {
   req.on("close", () => clearTimeout(timer))
 })
 
-app.use("/js/components", express.static(makeAbsolute("../../src/components")))
-
 app.use("/js", express.static(makeAbsolute(".")))
 
-app.use(express.static(makeAbsolute("../../model/static")))
+app.use(express.static(makeAbsolute("../../static")))
 
 app.get("/py", (req, res) => {
   exec(defaultPythonPath + " --version", (err, stdin, stderr) => {

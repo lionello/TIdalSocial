@@ -17,7 +17,6 @@
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
     "pretest": "npm run build-ts",
     "test": "mocha dist/tests",
-    "prestart": "npm run build-ts",
     "start": "node .",
     "watch-ts": "tsc -w"
   },

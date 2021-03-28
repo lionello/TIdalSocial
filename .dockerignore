@@ -1,0 +1,9 @@
+.git/
+node_modules/
+assets/
+cache/
+lastfm/
+nix/
+tests/
+model/__pycache__/
+model/tests/
