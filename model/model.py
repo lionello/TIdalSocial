@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import re
 import unicodedata
 from pathlib import Path
@@ -55,6 +56,9 @@ class Model:
         self.playlist_model = NMSLibAlternatingLeastSquares(
             factors=64, dtype=np.float32
         )
+        self.artists = []
+        self.playlist_urls = []
+        self.artist_by_name = {}
 
     def load(self):
         with np.load(MODEL_DIR / "artist_factors.npz") as data:
@@ -87,7 +91,7 @@ class Model:
         # TODO: create new columns for unknown artists (instead of removing them)
         artist_ids = [a for a in artist_ids if a != None]
         if len(artist_ids) == 0:
-            raise BadRequest("no known artists")
+            raise BadRequest("no known artists")  # FIXME: remove
         # TODO: determine proper "bm25" weight for each artist
         user_plays = scipy.sparse.coo_matrix(
             ([444.0] * len(artist_ids), ([0] * len(artist_ids), artist_ids)),
