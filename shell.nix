@@ -9,8 +9,8 @@ let
   python37gcc = python37.override { stdenv = gccStdenv; };
   python37' = python37.withPackages(ps: with ps; [ poetry ]);
   python27' = python27.withPackages(ps: with ps; [ virtualenv numpy ]);
-in gccStdenv.mkDerivation {
-  name = "gcc-nix-shell";
+in mkShell {
+  #name = "gcc-nix-shell";
   buildInputs = [
     nodejs-14_x
     python37

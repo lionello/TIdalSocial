@@ -14,7 +14,7 @@ RUN pip3 install --no-cache-dir --upgrade pip && pip3 install --no-cache-dir \
     implicit \
     && pip install --no-binary :all: nmslib
 
-WORKDIR tidalsocial
+WORKDIR /tidalsocial
 COPY --from=build node_modules/ node_modules
 ENV OPENBLAS_NUM_THREADS=1
 COPY dist/ dist
@@ -26,3 +26,4 @@ RUN mkdir -p db/playlist cache/playlist
 COPY db/playlist/5e76c6c2-ed06-4126-8d7f-a0bd6a9a091d-playlist.json db/playlist/
 CMD ./run.sh
 #CMD ["overmind", "start"]
+VOLUME [ "/model" ]

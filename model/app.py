@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import BadRequest, HTTPException
 
-from model import Model
+from model import Model, load_json
 
 
 def base64url(str_or_bytes):
@@ -40,16 +40,6 @@ assert (
     jwtHS256(0, b"asdf")
     == b"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.MA.2dy1KBMg0xLfOGeFxww_NmQUWvigXSLeBkk_rp6Y_jE"
 )
-
-
-def load_json(filename):
-    with open(filename, "r") as infile:
-        return json.load(infile)
-
-
-def save_json(filename, obj):
-    with open(filename, "w") as outfile:
-        json.dump(obj, outfile)
 
 
 def sanity_check():
