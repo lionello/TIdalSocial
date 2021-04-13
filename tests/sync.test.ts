@@ -9,8 +9,8 @@ chai.use(spies)
 
 declare let global: any
 
-function mockFetch(json_or_error) {
-  return async (url, init) => ({
+function mockFetch(json_or_error: any) {
+  return async (url: string, init?: RequestInit) => ({
     json: async () => {
       if (json_or_error instanceof Error) throw json_or_error
       return json_or_error
