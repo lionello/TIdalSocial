@@ -1,10 +1,14 @@
 import { VERSION } from "./version.js"
 
-async function getVersion(): Promise<string> {
+interface Version {
+  VERSION?: string
+}
+
+async function getVersionLongPoll(): Promise<Version> {
   const response = await fetch("/version", {
     headers: { "Cache-Control": "no-cache" },
   })
-  return response.text()
+  return response.json()
 }
 
 function waitMillis(ms: number): Promise<void> {
@@ -13,15 +17,15 @@ function waitMillis(ms: number): Promise<void> {
 
 export async function watchVersion(forever: boolean): Promise<void> {
   do {
-    let version
+    let version: Version = {}
     try {
-      version = await getVersion()
-    } catch {
-      // nop
+      version = await getVersionLongPoll()
+    } catch (e) {
+      console.debug(e)
     }
-    await waitMillis(2000)
-    if (version !== VERSION) window.location.reload()
+    await waitMillis(1000)
+    if (version.VERSION !== VERSION) window.location.reload()
   } while (forever)
 }
 
-watchVersion(true)
+globalThis.onload = (ev) => watchVersion(true)

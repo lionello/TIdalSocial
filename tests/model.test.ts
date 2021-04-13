@@ -1,5 +1,5 @@
 import { assert } from "chai"
-import { describe } from "mocha"
+import { describe, it } from "mocha"
 import { processPlaylist } from "../src/model.js"
 
 describe("model", function () {

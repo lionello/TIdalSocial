@@ -20,7 +20,6 @@ function dirname(): string {
 }
 
 function makeAbsolute(relative: string): string {
-  console.log(dirname())
   return Path.join(dirname(), relative)
 }
 
@@ -62,7 +61,7 @@ app.post("/url", express.urlencoded({ extended: true }), (req, res, next) => {
 app.get("/version", (req, res) => {
   const timeout = req.query["timeout"] as string
   const timer = setTimeout(
-    () => res.send(VERSION),
+    () => res.send({ VERSION }),
     1000 * Number.parseInt(timeout || DEFAULT_VERSION_TIMEOUT)
   )
   // Abandon the timer when the client disconnects

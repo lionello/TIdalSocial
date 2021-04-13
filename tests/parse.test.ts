@@ -1,5 +1,5 @@
 import { assert } from "chai"
-import { describe } from "mocha"
+import { describe, it, before } from "mocha"
 import {
   importFromURLParsed,
   getPlaylistURL,
