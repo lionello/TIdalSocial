@@ -1,4 +1,5 @@
-# TIdalSocial
+# TIdalSocial ![alt text](https://github.com/lionello/TIdalSocial/blob/master/static/favicon.png?raw=true)
+
 
 **This project is not affiliated with TIDAL or ASPIRO AB.**
 
