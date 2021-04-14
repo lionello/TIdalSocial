@@ -17,4 +17,4 @@ TIdalSocial uses the following libraries for the recommendations:
 For more details about the inner working of the algorithm, please check the excelent blog post by @benfred on https://www.benfrederickson.com/matrix-factorization/
 
 The frontend is written in HTML and [TypeScript](https://www.typescriptlang.org) and uses [Vue.js](https://vuejs.org).
-The backend is also written in TypeScript, runs on [NodeJS](https://nodejs.org/), but `POST`s requests to a local Python 3 Flask server for the actual recommendations.
+The backend is also written in TypeScript, runs on [NodeJS](https://nodejs.org/), but `POST`s requests to a local Python 3 Flask server for the actual recommendations. I'm using ECMAScript Modules to allow the generated JavaScript to work in the browser as well as on Node.
