@@ -1,6 +1,7 @@
 import itertools
 import logging
 import os
+import tempfile
 
 import hnswlib
 import numpy
@@ -49,13 +50,16 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
         )
 
     @staticmethod
-    def _save_index(index, folder: str, filename: str):
-        path = os.path.join(folder, filename + str(index.dim))
+    def _save_index(index, dir: str, filename: str):
+        path = os.path.join(dir, filename + str(index.dim))
         log.debug("Saving hnswlib index " + path)
-        return index.save_index(path)
+        # Avoid corrupting an existing index by saving to a temporary file first
+        with tempfile.NamedTemporaryFile(dir=dir, delete=False) as tmp:
+            index.save_index(tmp.name)
+        os.replace(tmp.name, path)
 
-    def _load_index(self, dim: int, folder: str, filename: str, max_elements: int):
-        path = os.path.join(folder, filename + str(dim))
+    def _load_index(self, dim: int, dir: str, filename: str, max_elements: int):
+        path = os.path.join(dir, filename + str(dim))
         log.debug("Loading hnswlib index " + path)
         index = self._create_index(dim)
         try:
@@ -63,7 +67,7 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
         except RuntimeError as e:
             if str(e) != "Cannot open file":
                 raise e
-            log.warning(e)
+            log.warning(e, extra={"dir": dir, "filename_": filename})
             index.init_index(
                 max_elements=max_elements,
                 ef_construction=self.index_params["efConstruction"],
@@ -71,11 +75,11 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
             )
         return index
 
-    def load_indexes(self, folder: str, max_items: int = 0, max_users: int = 0):
+    def load_indexes(self, dir: str, max_items: int = 0, max_users: int = 0):
         if self.approximate_similar_items:
             self.similar_items_index = self._load_index(
                 self.factors,
-                folder,
+                dir,
                 "similar_items_index.bin",
                 max_elements=max_items,
             )
@@ -83,18 +87,18 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
             self.item_factors = numpy.reshape(
                 self.similar_items_index.get_items(range(count)),
                 (count, self.factors),
-            )
+            ).astype(self.dtype)
         if self.approximate_recommend:
             self.recommend_index = self._load_index(
                 self.factors + 1,
-                folder,
+                dir,
                 "recommend_index.bin",
                 max_elements=max_items,
             )
         if self.approximate_similar_users:
             self.similar_users_index = self._load_index(
                 self.factors,
-                folder,
+                dir,
                 "similar_users_index.bin",
                 max_elements=max_users,
             )
@@ -102,24 +106,20 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
             self.user_factors = numpy.reshape(
                 self.similar_users_index.get_items(range(count)),
                 (count, self.factors),
-            )
+            ).astype(self.dtype)
 
-    def save_indexes(self, folder: str, save_items=True, save_users=True):
+    def save_indexes(self, dir: str, save_items=True, save_users=True):
         if self.similar_items_index and save_items:
-            self._save_index(
-                self.similar_items_index, folder, "similar_items_index.bin"
-            )
+            self._save_index(self.similar_items_index, dir, "similar_items_index.bin")
         if self.recommend_index and save_items:
-            self._save_index(self.recommend_index, folder, "recommend_index.bin")
+            self._save_index(self.recommend_index, dir, "recommend_index.bin")
         if self.similar_users_index and save_users:
-            self._save_index(
-                self.similar_users_index, folder, "similar_users_index.bin"
-            )
+            self._save_index(self.similar_users_index, dir, "similar_users_index.bin")
 
     def _make_matrix(self, factors):
         if numpy.ndim(factors) == 1 and len(factors) == self.factors:
-            return numpy.reshape(factors, (1, self.factors))
-        return numpy.reshape(factors, (len(factors), self.factors))
+            return numpy.reshape(factors, (1, self.factors)).astype(self.dtype)
+        return numpy.reshape(factors, (len(factors), self.factors)).astype(self.dtype)
 
     def set_user_factors(self, user_factors):
         self.user_factors = self._make_matrix(user_factors)
@@ -167,7 +167,7 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
         # by just not indexing them
         norms = numpy.linalg.norm(self.item_factors, axis=1)
         if 0 in norms:
-            log.warn("numerical instability issues with cosine index")
+            log.warning("numerical instability issues with cosine index")
         # ids = numpy.arange(self.item_factors.shape[0])
         # delete zero valued rows from the matrix TODO
         # item_factors = numpy.delete(self.item_factors, ids[norms == 0], axis=0)
@@ -187,7 +187,10 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
 
     def similar_users_by_factors(self, user_factors1, N: int = 10):
         assert self.approximate_similar_users
-        if self.similar_users_index.get_current_count() == 0:
+        if (
+            self.similar_users_index is None
+            or self.similar_users_index.get_current_count() == 0
+        ):
             return []
         neighbours, distances = self.similar_users_index.knn_query(user_factors1, k=N)
         return zip(neighbours[0], 1.0 - distances[0])
