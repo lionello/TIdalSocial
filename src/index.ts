@@ -1,10 +1,11 @@
 import { app } from "./app.js"
-import { importFromURLParsed } from "./parse.js"
+import { getArtistURL, importFromURLParsed, setOffline } from "./parse.js"
+import { readdir } from "fs/promises"
 
 const { PORT: port = 3000 } = process.env
 
 app.listen(port, function () {
-  console.log(`server started at http://localhost:${this.address().port}`)
+  console.log(`HTTP server started at http://localhost:${this.address().port}`)
 })
 
 // function isSuperset<T>(set: Set<T>, subset: Iterable<T>): boolean {
@@ -17,23 +18,27 @@ app.listen(port, function () {
 // }
 
 async function bootstrap(url: string) {
-  const songs = await importFromURLParsed(url)
-  for (const track of songs.tracks) {
-    console.log(
-      track.trackName,
-      "|",
-      track.artists.join(","),
-      "|",
-      track.albumTitle
-      // track.artists.map((a) => Artists[a.toLowerCase()])
-    )
-  }
+  const songs = await importFromURLParsed(url, true)
+  console.log(songs.title, "\t", url)
+  // for (const track of songs.tracks) {
+  //   console.log(
+  //     track.trackName,
+  //     "|",
+  //     track.artists.join(","),
+  //     "|",
+  //     track.albumTitle
+  //     // track.artists.map((a) => Artists[a.toLowerCase()])
+  //   )
+  // }
 }
 
 async function main(args: string[]) {
-  // for (const guid of PLAYLISTS) {
-  //   await bootstrap(getPlaylistURL(guid))
-  // }
+  setOffline(true)
+  const artists = await readdir("cache/artist")
+  for (const a of artists) {
+    await bootstrap(getArtistURL(parseInt(a)))
+    // await bootstrap(getPlaylistURL(guid))
+  }
 }
 
 main(process.argv).catch((err) => {

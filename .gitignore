@@ -9,3 +9,4 @@ cache/
 artists/
 db/
 .direnv/
+model/tests/*.bin*

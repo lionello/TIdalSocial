@@ -22,6 +22,9 @@ in mkShell {
     #openblas
     #mkl
     #openmp
+    azure-cli
   ];
   OPENBLAS_NUM_THREADS = 1; # Recommended by implicit
+  PYTHONFAULTHANDLER = 1;   # Show SIGSEGV stack traces
+  NODE_ENV = "development";
 }

@@ -1,5 +1,13 @@
 import fetch from "node-fetch"
-import { Track } from "./parse"
+
+export interface Track {
+  trackName: string
+  trackUrl?: string
+  artists: string[]
+  // artistUrls?: string[]
+  albumTitle?: string
+  albumUrl?: string
+}
 
 export interface TrackList {
   title?: string

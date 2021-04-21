@@ -1,15 +1,18 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
+import os
 import re
 import unicodedata
-from pathlib import Path
+from implicit.nearest_neighbours import bm25_weight
 
 import numpy as np
 import scipy
 from hnsw_als import HNSWLibAlternatingLeastSquares
 
-MODEL_DIR = Path(__file__).absolute().parent
+ARTISTS_JSON = "artists.json"
+PLAYLISTS_JSON = "playlists.json"
+STORAGE_FOLDER = os.getenv("STORAGE_FOLDER", os.path.dirname(__file__))
 
 log = logging.getLogger("model")
 
@@ -61,84 +64,115 @@ def save_json(filename, obj):
 
 
 class Model:
+    FACTORS = 64
+
     def __init__(self):
         self.playlist_model = HNSWLibAlternatingLeastSquares(
-            factors=64, dtype=np.float32, num_threads=2
+            factors=self.FACTORS, dtype=np.float32, num_threads=2
         )
-        self.artists = []
-        self.playlist_urls = []
+        self.artist_names = []
         self.artist_by_name = {}
+        self.playlist_urls = []
+        self.playlist_set = set()
         self.dirty_playlists = False
+        self.dirty_artists = False
 
-    def load(self):
-        self.playlist_model.load_indexes(MODEL_DIR)
+    def add_artists(self, artist_factors, artists_names: list):
+        new_artists = [canonicalize(a) for a in artists_names]
+        self.playlist_model.add_items(artist_factors)
+        self.set_artists(self.artist_names + new_artists)
 
-        self.artists = load_json(MODEL_DIR / "artists.json")
-        log.info("Loaded %s artists" % len(self.artists))
+    def set_artists(self, artist_names: list):
+        self.artist_names = artist_names
+        log.info("Loaded %s artists" % len(self.artist_names))
         # print("Loaded %s artists" % len(self.playlist_model.item_factors))
-        self.artist_by_name = dict(zip(self.artists, range(len(self.artists))))
-        assert len(self.playlist_model.item_factors) == len(self.artists)
+        assert len(self.playlist_model.item_factors) == len(self.artist_names)
         # assert self.playlist_model.item_factors.shape[1] == self.playlist_model.factors
+        self.artist_by_name = dict(
+            zip(self.artist_names, range(len(self.artist_names)))
+        )
+        self.dirty_artists = True
 
-        self.playlist_urls = load_json(MODEL_DIR / "playlists.json")
+    def set_playlist_urls(self, playlist_urls: list):
+        self.playlist_urls = playlist_urls
         log.info("Loaded %s playlists" % len(self.playlist_urls))
         # print("Loaded %s playlists" % len(self.playlist_model.user_factors))
         assert len(self.playlist_model.user_factors) == len(self.playlist_urls)
         # assert self.playlist_model.user_factors.shape[1] == self.playlist_model.factors
+        self.playlist_set = set(self.playlist_urls)
+        self.dirty_playlists = True
+
+    def load(self, dir=STORAGE_FOLDER):
+        self.playlist_model.load_indexes(dir)
+        self.set_artists(load_json(os.path.join(dir, ARTISTS_JSON)))
+        self.set_playlist_urls(load_json(os.path.join(dir, PLAYLISTS_JSON)))
+        self.dirty_playlists = False
+        self.dirty_artists = False
 
     def process_playlist(self, url: str, tracks: list, **kwargs) -> dict:
-        artist_names = [artist for track in tracks for artist in track["artists"]]
-        return self.process_artists(url, artist_names, **kwargs)
+        artists = [artist for track in tracks for artist in track["artists"]]
+        return self.process_artists(url, artists, **kwargs)
 
-    def save(self):
-        self.dirty_playlists = False
-        assert self.playlist_model.user_factors.shape[0] == len(self.playlist_urls)
-        assert self.playlist_model.item_factors.shape[0] == len(self.artists)
-        save_json(MODEL_DIR / "playlists.json", self.playlist_urls)
-        self.playlist_model.save_indexes(MODEL_DIR, save_items=False)
-        # save_json(MODEL_DIR / "artists.json", self.artists)
+    @staticmethod
+    def _len(ar) -> int:
+        return len(ar) if ar is not None else 0
+
+    def save(self, dir=STORAGE_FOLDER):
+        assert self._len(self.playlist_model.user_factors) == len(self.playlist_urls)
+        assert self._len(self.playlist_model.item_factors) == len(self.artist_names)
+        self.playlist_model.save_indexes(
+            dir, save_items=self.dirty_artists, save_users=self.dirty_playlists
+        )
+        if self.dirty_playlists:
+            self.dirty_playlists = False
+            save_json(os.path.join(dir, PLAYLISTS_JSON), self.playlist_urls)
+        if self.dirty_artists:
+            self.dirty_artists = False
+            save_json(os.path.join(dir, ARTISTS_JSON), self.artist_names)
 
     def process_artists(
-        self, url: str, artist_names: list, update=True, recommend=True
+        self, url: str, artists: list, update=True, recommend=True
     ) -> dict:
         # TODO: count multiple occurrences of the same artist so we can improve confidence
-        artist_ids = [
-            self.artist_by_name.get(canonicalize(name)) for name in artist_names
-        ]
+        artist_ids = [self.artist_by_name.get(canonicalize(name)) for name in artists]
         # TODO: create new columns for unknown artists (instead of removing them)
         artist_ids = [a for a in artist_ids if a != None]
         if len(artist_ids) == 0:
-            log.warn("no known artists")
+            log.warning("no known artists")
             return None
         # TODO: determine proper "bm25" weight for each artist
         user_plays = scipy.sparse.coo_matrix(
             ([444.0] * len(artist_ids), ([0] * len(artist_ids), artist_ids)),
-            shape=(1, len(self.artists)),
+            shape=(1, len(self.artist_names)),
         )
         playlist_factors = self.playlist_model.recalculate_user(0, user_plays)
 
         playlists = self.playlist_model.similar_users_by_factors(playlist_factors)
-        newplaylists = [self.playlist_urls[pair[0]] for pair in playlists]
 
-        if update:
+        if update and url not in self.playlist_set:
             self.playlist_model.add_users(playlist_factors)
 
             playlist_id = len(self.playlist_urls)
             self.playlist_urls.append(url)
+            self.playlist_set.add(url)
             log.info(playlist_id, url)
             self.dirty_playlists = True
 
-        newartists = None
+        new_artists = None
         if recommend:
-            newartists = [
-                self.artists[pair[0]]
-                for pair in self.playlist_model.recommend(
-                    0, user_plays.tocsr(), recalculate_user=True
-                )
-            ]
-        return {"artists": newartists, "playlists": newplaylists}
+            artists = self.playlist_model.recommend(
+                0, user_plays.tocsr(), recalculate_user=True
+            )
+            new_artists = [self.artist_names[pair[0]] for pair in artists]
+        new_playlists = [self.playlist_urls[pair[0]] for pair in playlists]
+        return {"artists": new_artists, "playlists": new_playlists}
 
     def reset(self):
         self.playlist_model.set_user_factors([])
-        self.playlist_urls = []
-        self.dirty_playlists = True
+        self.set_playlist_urls([])
+
+    def fit(self, plays, playlist_urls: list, artists: list):
+        Ciu = bm25_weight(plays, K1=100, B=0.8)
+        self.playlist_model.fit(Ciu, show_progress=False)
+        self.set_artists(artists)
+        self.set_playlist_urls(playlist_urls)

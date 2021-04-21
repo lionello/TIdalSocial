@@ -1,8 +1,9 @@
 import { promises as FS } from "fs"
 import * as Path from "path"
 import * as jsdom from "jsdom"
-import { TrackList } from "./model"
+import { Track, TrackList } from "./model"
 
+const STORAGE_FOLDER = process.env.STORAGE_FOLDER || "."
 const DB_FOLDER = "db"
 const CACHE_FOLDER = "cache"
 const TIDAL_URL_REGEX = /([^/]+)\/([^/]+)$/
@@ -13,15 +14,6 @@ let offlineMode = false
 
 export function setOffline(offline = true): void {
   offlineMode = offline
-}
-
-export interface Track {
-  trackName: string
-  trackUrl?: string
-  artists: string[]
-  // artistUrls?: string[]
-  albumTitle?: string
-  albumUrl?: string
 }
 
 function makeAbs(url: string): string {
@@ -55,20 +47,31 @@ function parseTrackItem(trackItem: Element): Track {
   }
 }
 
-export function parsePlaylistDocument(playlist: Document): Track[] {
+type PageInfo = {
+  title?: string
+  tracks: Track[]
+}
+
+export function parsePlaylistDocument(playlist: Document): PageInfo {
+  const title = playlist
+    .getElementsByClassName(
+      "font-size-large font-size-medium-lg-max margin-bottom-0"
+    )[0]
+    ?.textContent?.replace(TRIM_REGEX, "")
   const trackItems = Array.from(
     playlist.getElementsByClassName("track-item has-info")
   )
-  return trackItems.map((trackItem) => parseTrackItem(trackItem))
+  const tracks = trackItems.map((trackItem) => parseTrackItem(trackItem))
+  return { title, tracks }
 }
 
-async function importFromURL(url: string): Promise<Track[]> {
+async function importFromURL(url: string): Promise<PageInfo> {
   if (offlineMode) throw new Error("Parser is in offline mode")
   const dom = await jsdom.JSDOM.fromURL(url)
   return parsePlaylistDocument(dom.window.document)
 }
 
-function importFromString(html: string): Track[] {
+function importFromString(html: string): PageInfo {
   const dom = new jsdom.JSDOM(html)
   return parsePlaylistDocument(dom.window.document)
 }
@@ -77,7 +80,7 @@ function removeHTTPHeaders(html: string): string {
   return html.replace(/^HTTP\/1\.1 .+\r\n\r\n/s, "")
 }
 
-async function importFromURLCached(url: string): Promise<Track[]> {
+async function importFromURLCached(url: string): Promise<PageInfo> {
   try {
     const htmlFile = getHtmlCacheName(url)
     const html = await FS.readFile(htmlFile, "utf-8")
@@ -106,25 +109,30 @@ export function getArtistURL(id: number): string {
 
 function getJsonCacheName(url: string): string {
   const [, type, id] = TIDAL_URL_REGEX.exec(url)!
-  return Path.join(DB_FOLDER, type, `${id}-${type}.json`)
+  return Path.join(STORAGE_FOLDER, DB_FOLDER, type, `${id}-${type}.json`)
 }
 
 function getHtmlCacheName(url: string): string {
   const [match] = TIDAL_URL_REGEX.exec(url)!
-  return Path.join(CACHE_FOLDER, match)
+  return Path.join(STORAGE_FOLDER, CACHE_FOLDER, match)
 }
 
-export async function importFromURLParsed(url: string): Promise<TrackList> {
+export async function importFromURLParsed(
+  url: string,
+  force = false
+): Promise<TrackList> {
   const jsonFile = getJsonCacheName(url)
-  try {
-    const cacheContents = await FS.readFile(jsonFile, "utf-8")
-    return JSON.parse(cacheContents)
-  } catch (e) {
-    // ignore errors, just refetch
-    console.warn(e)
+  if (!force) {
+    try {
+      const cacheContents = await FS.readFile(jsonFile, "utf-8")
+      return JSON.parse(cacheContents)
+    } catch (e) {
+      // ignore errors, just refetch
+      console.warn(e)
+    }
   }
-  const tracks = await importFromURLCached(url)
-  const playlist = { url, tracks }
+  const pageInfo = await importFromURLCached(url)
+  const playlist = { url, ...pageInfo }
   await FS.writeFile(jsonFile, JSON.stringify(playlist))
   return playlist
 }
