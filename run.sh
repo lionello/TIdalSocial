@@ -4,7 +4,7 @@
 set -m
 
 # Start the primary process and put it in the background
-npm start &
+node . &
 
 # Start the helper process
 cd model

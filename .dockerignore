@@ -7,3 +7,4 @@ nix/
 tests/
 model/__pycache__/
 model/tests/
+Dockerfile

@@ -6,15 +6,13 @@ RUN npm install --only=prod
 FROM node:14-buster
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3-pip \
-    python3-setuptools \
     python3-dev \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip3 install --no-cache-dir --upgrade pip && pip3 install --no-cache-dir \
-    flask \
-    hnswlib \
-    implicit
+COPY requirements.txt /tmp/
+RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel \
+    && pip3 install --no-cache-dir --requirement /tmp/requirements.txt
 
 WORKDIR /tidalsocial
 COPY --from=build node_modules/ node_modules
@@ -29,8 +27,10 @@ COPY model/ model
 COPY static/ static
 COPY package.json run.sh ./
 EXPOSE 3000
-RUN mkdir -p db/playlist cache/playlist
+RUN mkdir -p db/playlist db/artist cache/playlist cache/artiss
 COPY db/playlist/5e76c6c2-ed06-4126-8d7f-a0bd6a9a091d-playlist.json db/playlist/
+ENV NODE_ENV=production
 ENV STORAGE_FOLDER=/model
 VOLUME [ $STORAGE_FOLDER ]
 CMD ./run.sh
+USER node
