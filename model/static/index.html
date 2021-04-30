@@ -18,7 +18,7 @@
     <div id="app">
         <ul id="example-1">
             <li v-for="item in items" :key="item">
-                <tidal :src="item"></tidal>
+                <tidal :id="item"></tidal>
             </li>
           </ul>
     </div>
@@ -40,7 +40,7 @@
         fetch("/url", {method: "post", body})
             .then(res => res.json())
             .then(result => {
-                app.items = result.playlists.map(url => url.replace('tidal.com/browse/playlist', 'embed.tidal.com/playlists'));
+                app.items = result.playlists;
             })
         return false;
     }

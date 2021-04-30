@@ -36,7 +36,7 @@ async function main(args: string[]) {
   setOffline(true)
   const artists = await readdir("cache/artist")
   for (const a of artists) {
-    await bootstrap(getArtistURL(parseInt(a)))
+    // await bootstrap(getArtistURL(parseInt(a)))
     // await bootstrap(getPlaylistURL(guid))
   }
 }

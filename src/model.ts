@@ -10,9 +10,10 @@ export interface Track {
 }
 
 export interface TrackList {
-  title?: string
+  id: string
   url: string
   tracks: Track[]
+  title?: string
 }
 
 const MODEL_HOST = "http://localhost:5000"

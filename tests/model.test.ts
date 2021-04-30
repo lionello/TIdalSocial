@@ -6,6 +6,7 @@ describe("model", function () {
   it("processPlaylist", async function () {
     const playlist = await processPlaylist(
       {
+        id: "blah",
         tracks: [{ trackName: "Creep", artists: ["Radiohead"] }],
         url: "https://tidal.com/blah",
       },

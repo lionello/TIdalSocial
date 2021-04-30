@@ -57,6 +57,7 @@ describe("parse", function () {
       const songs = await importFromURLParsed(url)
       assert.isNotEmpty(songs.tracks)
       assert.strictEqual(songs.url, url)
+      assert.strictEqual(songs.id, guid)
     })
   }
 
@@ -65,5 +66,6 @@ describe("parse", function () {
     const songs = await importFromURLParsed(url)
     assert.isNotEmpty(songs.tracks)
     assert.strictEqual(songs.url, url)
+    assert.strictEqual(songs.id, "50")
   })
 })

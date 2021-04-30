@@ -30,6 +30,7 @@ EXPOSE 3000
 RUN mkdir -p db/playlist db/artist cache/playlist cache/artiss
 COPY db/playlist/5e76c6c2-ed06-4126-8d7f-a0bd6a9a091d-playlist.json db/playlist/
 ENV NODE_ENV=production
+ENV FLASK_ENV=production
 ENV STORAGE_FOLDER=/model
 VOLUME [ $STORAGE_FOLDER ]
 CMD ./run.sh

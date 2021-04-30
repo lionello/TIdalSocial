@@ -64,7 +64,7 @@ class TestModel(unittest.TestCase):
         self.assertTrue(self.model.dirty_artists)
         self.assertEqual(ARTISTS, len(self.model.artist_names))
         self.assertEqual(ARTISTS, len(self.model.artist_by_name))
-        self.assertEqual(PLAYLISTS, len(self.model.playlist_urls))
+        self.assertEqual(PLAYLISTS, len(self.model.playlist_ids))
 
     def test_load(self):
         self.model.load(dir=self.TEST_MODEL)
@@ -76,7 +76,7 @@ class TestModel(unittest.TestCase):
         self.assertIsNotNone(self.model.playlist_model)
         self.assertIsNotNone(self.model.playlist_model.user_factors)
         self.assertIsNotNone(self.model.playlist_model.item_factors)
-        # self.assertTrue(self.model.playlist_urls)
+        # self.assertTrue(self.model.playlist_ids)
         self.assertTrue(self.model.artist_names)
         self.assertFalse(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
@@ -95,19 +95,25 @@ class TestModel(unittest.TestCase):
 
     def test_process_playlist(self):
         self.model.load(dir=self.TEST_MODEL)
-        res = self.model.process_playlist(
-            "http://test_process_playlist", [{"artists": ["1"]}]
-        )
+        res = self.model.process_playlist([{"artists": ["1"]}], "test_process_playlist")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
         self.assertTrue(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
 
+    def test_process_playlist_no_id(self):
+        self.model.load(dir=self.TEST_MODEL)
+        res = self.model.process_playlist([{"artists": ["1"]}], None)
+        self.assertTrue(res["artists"])
+        self.assertTrue(res["playlists"])
+        self.assertFalse(self.model.dirty_playlists)
+        self.assertFalse(self.model.dirty_artists)
+
     def test_process_playlist_with_unknown(self):
         self.model.load(dir=self.TEST_MODEL)
         res = self.model.process_playlist(
-            "http://test_process_playlist_with_unknown",
             [{"artists": ["1", "nonexistentartist"]}],
+            "test_process_playlist_with_unknown",
         )
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
@@ -116,15 +122,23 @@ class TestModel(unittest.TestCase):
 
     def test_process_artists(self):
         self.model.load(dir=self.TEST_MODEL)
-        res = self.model.process_artists("http://test_process_artists", ["2"])
+        res = self.model.process_artists(["2"], "test_process_artists")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
         self.assertTrue(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
 
+    def test_process_artists_no_id(self):
+        self.model.load(dir=self.TEST_MODEL)
+        res = self.model.process_artists(["2"], None)
+        self.assertTrue(res["artists"])
+        self.assertTrue(res["playlists"])
+        self.assertFalse(self.model.dirty_playlists)
+        self.assertFalse(self.model.dirty_artists)
+
     def test_process_artists_twice(self):
         self.model.load(dir=self.TEST_MODEL)
-        res = self.model.process_artists("2", ["2"])
+        res = self.model.process_artists(["2"], "2")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
         self.assertFalse(self.model.dirty_playlists)
@@ -133,7 +147,7 @@ class TestModel(unittest.TestCase):
     def test_process_artists_no_update(self):
         self.model.load(dir=self.TEST_MODEL)
         res = self.model.process_artists(
-            "http://test_process_artists_no_update", ["1"], update=False
+            ["1"], "test_process_artists_no_update", update=False
         )
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
@@ -143,7 +157,7 @@ class TestModel(unittest.TestCase):
     def test_process_artists_no_recommend(self):
         self.model.load(dir=self.TEST_MODEL)
         res = self.model.process_artists(
-            "http://test_process_artists_no_recommend", ["1"], recommend=False
+            ["1"], "test_process_artists_no_recommend", recommend=False
         )
         self.assertFalse(res["artists"])
         self.assertTrue(res["playlists"])
@@ -153,8 +167,8 @@ class TestModel(unittest.TestCase):
     def test_process_artists_no_update_recommend(self):
         self.model.load(dir=self.TEST_MODEL)
         res = self.model.process_artists(
-            "http://test_process_artists_no_update_recommend",
             ["1"],
+            "test_process_artists_no_update_recommend",
             update=False,
             recommend=False,
         )
@@ -165,7 +179,7 @@ class TestModel(unittest.TestCase):
 
     def test_process_artists_unknown(self):
         res = self.model.process_artists(
-            "http://test_process_artists_unknown", ["nonexistentartist"]
+            ["nonexistentartist"], "test_process_artists_unknown"
         )
         self.assertIsNone(res)
         self.assertFalse(self.model.dirty_playlists)
@@ -173,13 +187,13 @@ class TestModel(unittest.TestCase):
 
     def test_reset(self):
         self.model.reset()
-        self.assertListEqual(self.model.playlist_urls, [])
+        self.assertListEqual(self.model.playlist_ids, [])
         self.assertTrue(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
 
     def test_load_then_process(self):
         self.model.load(dir=self.TEST_MODEL)
-        res = self.model.process_artists("http://test_load_then_process", ["1"])
+        res = self.model.process_artists(["1"], "test_load_then_process")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
         self.assertTrue(self.model.dirty_playlists)

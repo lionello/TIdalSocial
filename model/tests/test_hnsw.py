@@ -1,6 +1,7 @@
 import os
 import tempfile
 import unittest
+import random
 
 import numpy as np
 import scipy
@@ -107,6 +108,21 @@ class TestHNSW(unittest.TestCase):
         self.model = HNSWLibAlternatingLeastSquares(factors=FACTORS)
         self.test_add_item(0)
 
+    def test_add_item_to_empty_similar_items(self):
+        self.test_add_item_to_empty()
+        lst = self.model.similar_items_by_factors(np.random.rand(FACTORS))
+        self.assertTrue(lst)
+
+    def test_add_item_to_empty_recommend(self):
+        self.test_add_item_to_empty()
+        lst = self.model.recommend(
+            0,
+            self.dummy_user_plays_csr(items=1, k=1),
+            recalculate_user=True,
+            filter_already_liked_items=False,
+        )
+        self.assertTrue(lst)
+
     def test_add_items_to_empty(self):
         self.model = HNSWLibAlternatingLeastSquares(factors=FACTORS)
         self.test_add_items(0)
@@ -114,6 +130,11 @@ class TestHNSW(unittest.TestCase):
     def test_add_user_to_empty(self):
         self.model = HNSWLibAlternatingLeastSquares(factors=FACTORS)
         self.test_add_user(0)
+
+    def test_add_user_to_empty_similar_users(self):
+        self.test_add_user_to_empty()
+        lst = self.model.similar_users_by_factors(np.random.rand(FACTORS))
+        self.assertTrue(lst)
 
     def test_add_users_to_empty(self):
         self.model = HNSWLibAlternatingLeastSquares(factors=FACTORS)
@@ -141,24 +162,24 @@ class TestHNSW(unittest.TestCase):
         self.assertEqual(users + 2, self.model.similar_users_index.get_current_count())
         self.assertEqual(users + 2, len(self.model.user_factors))
 
-    def test_recommend(self):
-        artist_ids = [3, 5]
-        user_plays = scipy.sparse.coo_matrix(
+    @staticmethod
+    def dummy_user_plays_csr(items: int = ITEMS, k: int = 2):
+        artist_ids = random.sample(range(items), k=k)
+        return scipy.sparse.coo_matrix(
             ([444.0] * len(artist_ids), ([0] * len(artist_ids), artist_ids)),
-            shape=(1, ITEMS),
-        )
-        lst = self.model.recommend(0, user_plays.tocsr())
+            shape=(1, items),
+        ).tocsr()
+
+    def test_recommend(self):
+        lst = self.model.recommend(0, self.dummy_user_plays_csr())
         self.assertTrue(lst)
         self.assertIsInstance(lst[0][0], (int, np.integer))
         self.assertIsInstance(lst[9][1], (float, np.float32))
 
     def test_recommend_recalc(self):
-        artist_ids = [3, 5]
-        user_plays = scipy.sparse.coo_matrix(
-            ([444.0] * len(artist_ids), ([0] * len(artist_ids), artist_ids)),
-            shape=(1, ITEMS),
+        lst = self.model.recommend(
+            0, self.dummy_user_plays_csr(), recalculate_user=True
         )
-        lst = self.model.recommend(0, user_plays.tocsr(), recalculate_user=True)
         self.assertTrue(lst)
         self.assertIsInstance(lst[0][0], (int, np.integer))
         self.assertIsInstance(lst[9][1], (float, np.float32))

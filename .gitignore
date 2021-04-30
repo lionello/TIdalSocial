@@ -6,7 +6,8 @@ __pycache__/
 lastfm/
 *.npz
 cache/
-artists/
 db/
 .direnv/
-model/tests/*.bin*
+*.bin*
+/artists.json
+/playlists.json

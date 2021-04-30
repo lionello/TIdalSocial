@@ -2,16 +2,14 @@
 import base64
 import hmac
 import json
-import os
 import secrets
 import time
-from pathlib import Path
 from urllib.parse import urlparse
 
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import BadRequest, HTTPException
 
-from model import Model, load_json
+from model import Model
 
 
 def base64url(str_or_bytes):
@@ -23,7 +21,6 @@ def base64url(str_or_bytes):
 assert base64url("ö") == b"w7Y"
 
 COMPACT_SEPARATORS = (",", ":")
-CACHE_DIR = Path(__file__).absolute().parent.parent / "db" / "playlist"
 
 
 def jwtHS256(payload, secret_key, jose={}):
@@ -42,43 +39,37 @@ assert (
 )
 
 
-def sanity_check():
-    return process_playlist(
-        load_json(CACHE_DIR / "5e76c6c2-ed06-4126-8d7f-a0bd6a9a091d-playlist.json"),
-        update=False,
-        recommend=False,
-    )
-
-
-def reset_playlists():
-    model.reset()
-    for f in os.listdir(CACHE_DIR):
-        if f[-5:] == ".json":
-            print("Loading", f)
-            playlist = load_json(CACHE_DIR / f)
-            try:
-                print(process_playlist(playlist, recommend=False))
-            except BadRequest as err:
-                print(str(err))
-
-
 app = Flask(__name__)
 app.secret_key = secrets.token_bytes(32)
 model = Model()
 
 
 def process_playlist(playlist, **kwargs):
-    url = playlist["url"]
-    if urlparse(url).scheme != "https":
-        raise BadRequest("invalid 'url': not a valid URL")
+    global model
     tracks = playlist["tracks"]
     if not isinstance(tracks, list):
         raise BadRequest("invalid 'tracks': not an array")
-    return model.process_playlist(url, tracks, **kwargs)
+    id_ = playlist.get("id")
+    return model.process_playlist(tracks, id_, **kwargs)
+
+
+def sanity_check():
+    return process_playlist(
+        {
+            "tracks": [
+                {"artists": ["La Sonora Matancera", "Nelson Pinedo"]},
+                {"artists": ["Bette Midler"]},
+                {"artists": ["Cesária Evora"]},
+            ]
+        },
+        update=False,
+        recommend=False,
+    )
 
 
 @app.before_first_request
 def init():
+    global model
     model.load()
     print(sanity_check())
 
@@ -124,4 +115,4 @@ def require_csrftoken():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()

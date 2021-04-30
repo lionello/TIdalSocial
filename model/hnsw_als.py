@@ -11,6 +11,12 @@ from implicit.approximate_als import augment_inner_product_matrix
 log = logging.getLogger("hnsw_als")
 
 
+def _safe_len(index) -> int:
+    if index is None:
+        return 0
+    return index.get_current_count()
+
+
 class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
     method = "hnsw"
 
@@ -187,10 +193,8 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
 
     def similar_users_by_factors(self, user_factors1, N: int = 10):
         assert self.approximate_similar_users
-        if (
-            self.similar_users_index is None
-            or self.similar_users_index.get_current_count() == 0
-        ):
+        N = min(N, _safe_len(self.similar_users_index))
+        if N == 0:
             return []
         neighbours, distances = self.similar_users_index.knn_query(user_factors1, k=N)
         return zip(neighbours[0], 1.0 - distances[0])
@@ -207,7 +211,8 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
 
     def similar_items_by_factors(self, item_factors1, N: int = 10):
         assert self.approximate_similar_items
-        if self.similar_items_index.get_current_count() == 0:
+        N = min(N, _safe_len(self.similar_items_index))
+        if N == 0:
             return []
         neighbours, distances = self.similar_items_index.knn_query(item_factors1, k=N)
         return zip(neighbours[0], 1.0 - distances[0])
@@ -283,7 +288,7 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
             liked.update(user_items[userid].indices)
         if filter_items:
             liked.update(filter_items)
-        count = N + len(liked)
+        count = min(N + len(liked), self.recommend_index.get_current_count())
 
         query = numpy.append(user, 0)
         ids, dist = self.recommend_index.knn_query(query, k=count)

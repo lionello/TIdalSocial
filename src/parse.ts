@@ -3,7 +3,8 @@ import * as Path from "path"
 import * as jsdom from "jsdom"
 import { Track, TrackList } from "./model"
 
-const STORAGE_FOLDER = process.env.STORAGE_FOLDER || "."
+const PROJECT_ROOT = "."
+const STORAGE_FOLDER = process.env.STORAGE_FOLDER || PROJECT_ROOT
 const DB_FOLDER = "db"
 const CACHE_FOLDER = "cache"
 const TIDAL_URL_REGEX = /([^/]+)\/([^/]+)$/
@@ -107,8 +108,7 @@ export function getArtistURL(id: number): string {
   return "https://tidal.com/browse/artist/" + id
 }
 
-function getJsonCacheName(url: string): string {
-  const [, type, id] = TIDAL_URL_REGEX.exec(url)!
+function getJsonCacheName(type: string, id: string): string {
   return Path.join(STORAGE_FOLDER, DB_FOLDER, type, `${id}-${type}.json`)
 }
 
@@ -121,7 +121,8 @@ export async function importFromURLParsed(
   url: string,
   force = false
 ): Promise<TrackList> {
-  const jsonFile = getJsonCacheName(url)
+  const [, type, id] = TIDAL_URL_REGEX.exec(url)!
+  const jsonFile = getJsonCacheName(type, id)
   if (!force) {
     try {
       const cacheContents = await FS.readFile(jsonFile, "utf-8")
@@ -132,7 +133,7 @@ export async function importFromURLParsed(
     }
   }
   const pageInfo = await importFromURLCached(url)
-  const playlist = { url, ...pageInfo }
+  const playlist = { id, url, ...pageInfo }
   await FS.writeFile(jsonFile, JSON.stringify(playlist))
   return playlist
 }
