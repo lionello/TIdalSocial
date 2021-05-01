@@ -11,3 +11,4 @@ db/
 *.bin*
 /artists.json
 /playlists.json
+/.vscode
