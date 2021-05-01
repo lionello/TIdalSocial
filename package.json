@@ -11,7 +11,7 @@
   "scripts": {
     "build": "npm run build-ts",
     "build-ts": "tsc",
-    "bump": "npm version patch -f 2>/dev/null | sed 's/^\\([v0-9.]*\\)/export const VERSION = \"\\1\"/' >src/version.ts",
+    "version": "node -e 'console.log(`export const VERSION = \"${require(\"./package.json\").version}\"`)' >src/version.ts && git add src/version.ts",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "dev": "nodemon .",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
