@@ -1,8 +1,14 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>TIdaL Social</title>
-    <link rel="icon" type="image/png" href="/favicon.png">
+    <title>TIdaL Social Test Page</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <link rel="manifest" href="/site.webmanifest">
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#2b5797">
+    <meta name="theme-color" content="#ffffff">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
     <script src="https://unpkg.com/http-vue-loader"></script>
     <script type="module" src="/js/sync.js"></script>
@@ -40,10 +46,19 @@
             padding: 10px;
             float: left;
         }
+        h3 {
+            letter-spacing: 0.5em;
+            line-height: 100%;
+            text-align: center;
+        }
+        img.logo {
+            margin-bottom: 3px;
+            vertical-align:middle;
+        }
     </style>
 </head>
 <body>
-    TIdaL Social Test Page
+    <h3><img class="logo" src="/favicon-32x32.png"> TIDAL SOCIAL</h3>
     <form id="form1" method="POST" action="/url">
         <input type="url" id="playlist_url" name="playlist_url" placeholder="Playlist or mix URL" autocomplete="off" value="https://tidal.com/browse/playlist/3751614e-3827-4860-819c-b9474a000dbb" autofocus size="70">
         <input type="submit">
