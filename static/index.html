@@ -67,13 +67,28 @@
             'tidal': window.httpVueLoader('/components/Tidal.vue')
         },
     });
+    function hashCash(body, nonce=0, limit=5) {
+        body.set("date", new Date);
+        if (!window.crypto || !window.crypto.subtle || !window.crypto.subtle.digest) {
+            return body;
+        }
+        body.set("nonce", nonce);
+        const buffer = new TextEncoder("utf-8").encode(body.toString());
+        return window.crypto.subtle.digest("SHA-256", buffer)
+            .then(function(ab) {
+                if (new DataView(ab).getUint16(0) < limit)
+                    return body;
+                return hashCash(body, 1 + nonce, limit);
+            });
+    }
     function handleSubmit(e) {
         e.preventDefault();
         document.getElementById("playlist_url").blur();
         const fd = new FormData(e.target);
         const body = new URLSearchParams(fd);
         app.items = ['','',''];
-        fetch("/url", {method: "post", body})
+        hashCash(body)
+            .then(body => fetch("/url", {method: "post", body}))
             .then(res => res.json())
             .then(result => {
                 app.items = result.playlists;
