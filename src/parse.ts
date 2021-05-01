@@ -59,9 +59,7 @@ export function parsePlaylistDocument(playlist: Document): PageInfo {
       "font-size-large font-size-medium-lg-max margin-bottom-0"
     )[0]
     ?.textContent?.replace(TRIM_REGEX, "")
-  const trackItems = Array.from(
-    playlist.getElementsByClassName("track-item has-info")
-  )
+  const trackItems = Array.from(playlist.getElementsByClassName("track-item has-info"))
   const tracks = trackItems.map((trackItem) => parseTrackItem(trackItem))
   return { title, tracks }
 }

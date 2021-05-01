@@ -34,9 +34,7 @@ export async function processPlaylist(
 ): Promise<Recommendation> {
   const { update = true, recommend = true } = options
   const response = await fetch(
-    `${MODEL_HOST}/playlist?update=${update ? 1 : 0}&recommend=${
-      recommend ? 1 : 0
-    }`,
+    `${MODEL_HOST}/playlist?update=${update ? 1 : 0}&recommend=${recommend ? 1 : 0}`,
     {
       method: "POST",
       body: JSON.stringify(playlist),
