@@ -2,6 +2,7 @@ import { promises as FS } from "fs"
 import * as Path from "path"
 import * as jsdom from "jsdom"
 import { Track, TrackList } from "./model"
+import { HTTPError, HTTPStatusCode } from "./error.js"
 
 const PROJECT_ROOT = "."
 const STORAGE_FOLDER = process.env.STORAGE_FOLDER || PROJECT_ROOT
@@ -66,8 +67,12 @@ export function parsePlaylistDocument(playlist: Document): PageInfo {
 
 async function importFromURL(url: string): Promise<PageInfo> {
   if (offlineMode) throw new Error("Parser is in offline mode")
-  const dom = await jsdom.JSDOM.fromURL(url)
-  return parsePlaylistDocument(dom.window.document)
+  try {
+    const dom = await jsdom.JSDOM.fromURL(url)
+    return parsePlaylistDocument(dom.window.document)
+  } catch (err) {
+    throw new HTTPError("Not Found", err.statusCode)
+  }
 }
 
 function importFromString(html: string): PageInfo {

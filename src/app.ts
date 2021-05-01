@@ -2,11 +2,12 @@ import { exec } from "child_process"
 import express from "express"
 import * as Path from "path"
 import { fileURLToPath } from "url"
+import { HTTPError, HTTPStatusCode } from "./error.js"
 import { processPlaylist } from "./model.js"
 import { importFromURLParsed } from "./parse.js"
 import { VERSION } from "./version.js"
 
-const SAFE_URL = "https://tidal.com/browse/"
+const SAFE_URL = /^https:\/\/(listen\.|embed\.)?tidal\.com\//
 const DEFAULT_VERSION_TIMEOUT = "60"
 
 export const app = express()
@@ -38,24 +39,24 @@ function makeAbsolute(relative: string): string {
 // )
 
 app.post("/url", express.urlencoded({ extended: true }), (req, res, next) => {
-  const playlist_url = req.body.playlist_url
-  if (typeof playlist_url !== "string" || !playlist_url.startsWith(SAFE_URL)) {
-    res.status(400).send("Not a Tidal URL")
-  } else {
-    importFromURLParsed(playlist_url)
-      .then((playlist) => {
-        return processPlaylist(playlist)
-      })
-      .then((response) => {
-        console.debug(response)
-        if (!req.accepts("json")) {
-          res.sendStatus(406)
-        } else {
-          res.send(response)
-        }
-      })
-      .catch(next)
+  if (!req.accepts("json")) {
+    throw new HTTPError("This API returns JSON", HTTPStatusCode.NOT_ACCEPTABLE)
   }
+  const { playlist_url } = req.body
+  if (typeof playlist_url !== "string" || !SAFE_URL.test(playlist_url)) {
+    console.debug(req.body)
+    throw new HTTPError("Missing or invalid 'playlist_url'", HTTPStatusCode.BAD_REQUEST)
+  }
+
+  importFromURLParsed(playlist_url)
+    .then((playlist) => {
+      return processPlaylist(playlist)
+    })
+    .then((response) => {
+      console.debug(response)
+      res.send(response)
+    })
+    .catch(next)
 })
 
 app.get("/version", (req, res) => {
@@ -72,9 +73,17 @@ app.use("/js", express.static(makeAbsolute(".")))
 
 app.use(express.static(makeAbsolute("../../static")))
 
-app.get("/py", (req, res) => {
+app.get("/py", (req, res, next) => {
   exec(defaultPythonPath + " --version", (err, stdin, stderr) => {
-    if (err) res.status(500).send(err.message)
+    if (err) next(err)
     else res.send(stdin + stderr)
   })
+})
+
+app.use(function (err, req, res, next) {
+  if (!err || res.headersSent || !req.accepts("json")) {
+    return next(err)
+  }
+  console.error(err.stack)
+  res.status(err.status || err.statusCode || 500).send({ error: err.message })
 })

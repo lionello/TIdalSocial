@@ -1,25 +1,54 @@
+<!DOCTYPE html>
 <html>
 <head>
     <title>TIdaL Social</title>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="/favicon.png">
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
     <script src="https://unpkg.com/http-vue-loader"></script>
     <script type="module" src="/js/sync.js"></script>
     <style>
         body {
             background-color: #17171a;
+            color: rgb(255,255,255);
+            font-family: nationale,nationale-regular,Helvetica,sans-serif;
+        }
+        button, input, select, textarea {
+            margin: 0;
+            font-size: 100%;
+        }
+        input {
+            border: 1px solid rgba(235,235,255,0.05);
+            border-radius: 12px;
+            color: rgb(252,252,252);
+            background-color: rgb(34,34,38);
+
+            height: 40px;
+            padding: 0px 8px;
+            margin: auto;
+            display: block;
+        }
+        input:focus {
+            color: rgb(0,0,0);
+            background-color: rgba(252,252,252);
+            border: 1px solid rgba(235,235,255,0.05);
+            outline: none;
+        }
+        input[type="submit"] {
+            visibility: hidden;
+        }
+        article {
+            padding: 10px;
+            float: left;
         }
     </style>
 </head>
 <body>
     TIdaL Social Test Page
     <form id="form1" method="POST" action="/url">
-        <input type="url" name="playlist_url" value="https://tidal.com/browse/playlist/3751614e-3827-4860-819c-b9474a000dbb" autofocus size="70">
+        <input type="url" id="playlist_url" name="playlist_url" placeholder="Playlist or mix URL" autocomplete="off" value="https://tidal.com/browse/playlist/3751614e-3827-4860-819c-b9474a000dbb" autofocus size="70">
         <input type="submit">
     </form>
 
-    <!-- <div style="position: relative; padding-bottom: 100%; height: 0; overflow: hidden; max-width: 50em;"> -->
-    <!-- </div> -->
     <div id="app">
         <section id="example-1">
             <article v-for="item in items" :key="item">
@@ -37,19 +66,21 @@
         components: {
             'tidal': window.httpVueLoader('/components/Tidal.vue')
         },
-    })
+    });
     function handleSubmit(e) {
         e.preventDefault();
+        document.getElementById("playlist_url").blur();
         const fd = new FormData(e.target);
-        const body = new URLSearchParams(fd)
+        const body = new URLSearchParams(fd);
+        app.items = ['','',''];
         fetch("/url", {method: "post", body})
             .then(res => res.json())
             .then(result => {
-                app.items = result.playlists.map(url => url.replace('tidal.com/browse/playlist', 'embed.tidal.com/playlists'));
-            })
+                app.items = result.playlists;
+            });
         return false;
     }
-    document.getElementById("form1").addEventListener("submit", handleSubmit)
+    document.getElementById("form1").addEventListener("submit", handleSubmit);
     </script>
 </body>
 </html>
