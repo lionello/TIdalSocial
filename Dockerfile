@@ -25,7 +25,7 @@ COPY --from=node_modules /app/node_modules/ node_modules
 COPY dist/ dist
 COPY model/ model
 COPY static/ static
-COPY package.json run.sh ./
+COPY package.json ./
 
 EXPOSE 3000
 ARG STORAGE_FOLDER=/model
