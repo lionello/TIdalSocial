@@ -33,7 +33,7 @@ export async function processPlaylist(
   playlist: TrackList,
   options: Options = {}
 ): Promise<Recommendation> {
-  const { update = true, recommend = true } = options
+  const { update = true, recommend = false } = options
   const response = await fetch(
     `${MODEL_HOST}/playlist?update=${update ? 1 : 0}&recommend=${recommend ? 1 : 0}`,
     {

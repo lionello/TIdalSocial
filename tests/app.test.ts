@@ -30,9 +30,9 @@ describe("app", function () {
   })
 
   function hashCash(body: string): string {
-    const form = body + "&date=" + encodeURIComponent(new Date().toString()) + "&nonce="
+    const form = body + "&date=" + encodeURIComponent(new Date().toString())
     for (let nonce = 0; ; nonce++) {
-      body = form + nonce
+      body = form + "&nonce=" + nonce
       if (verify(body)) return body
     }
   }
@@ -51,7 +51,7 @@ describe("app", function () {
       it(url, function (done) {
         request(app)
           .post("/url")
-          .send(hashCash("playlist_url=" + encodeURIComponent(url)))
+          .send(hashCash("update=0&playlist_url=" + encodeURIComponent(url)))
           .redirects(0)
           .expect("Content-Type", /^application\/json/)
           .expect(200)

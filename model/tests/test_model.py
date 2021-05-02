@@ -71,6 +71,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
 
+    # @unittest.skip("slow")
     def test_load_big(self):
         self.model.load()
         self.assertIsNotNone(self.model.playlist_model)
@@ -138,11 +139,21 @@ class TestModel(unittest.TestCase):
 
     def test_process_artists_twice(self):
         self.model.load(dir=self.TEST_MODEL)
-        res = self.model.process_artists(["2"], "2")
+        res = self.model.process_artists(["1"], "2")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
         self.assertFalse(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
+
+    def test_process_artists_filter_known(self):
+        self.test_process_artists()
+        res = self.model.process_artists(["2"], "test_process_artists")
+        self.assertNotIn("test_process_artists", res["playlists"])
+
+    def test_process_artists_ignore_case(self):
+        self.test_process_artists()
+        res = self.model.process_artists(["2"], "TEST_PROCESS_ARTISTS")
+        self.assertNotIn("test_process_artists", res["playlists"])
 
     def test_process_artists_no_update(self):
         self.model.load(dir=self.TEST_MODEL)

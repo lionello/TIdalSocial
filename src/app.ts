@@ -53,7 +53,7 @@ app.post(
       throw new HTTPError("Missing hash cash nonce", HTTPStatusCode.FORBIDDEN)
     }
 
-    const { playlist_url, date } = qs.parse(req.body)
+    const { playlist_url, date, update = "1" } = qs.parse(req.body)
 
     const deltaMs = Math.abs(Date.parse(date as string) - Date.now())
     if (deltaMs > 5 * 60 * 1000 || isNaN(deltaMs)) {
@@ -70,7 +70,7 @@ app.post(
 
     importFromURLParsed(playlist_url)
       .then((playlist) => {
-        return processPlaylist(playlist)
+        return processPlaylist(playlist, { update: !!update })
       })
       .then((response) => {
         console.debug(response)

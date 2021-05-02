@@ -140,7 +140,7 @@ class Model:
         # TODO: create new columns for unknown artists (instead of removing them)
         artist_ids = [a for a in artist_ids if a != None]
         if len(artist_ids) == 0:
-            log.warning("no known artists", extra={"artists": artists})
+            log.warning("No known artists", extra={"artists": artists})
             return None
         # TODO: determine proper "bm25" weight for each artist
         user_plays = scipy.sparse.coo_matrix(
@@ -148,21 +148,25 @@ class Model:
             shape=(1, len(self.artist_names)),
         )
         playlist_factors = self.playlist_model.recalculate_user(0, user_plays)
+        if id_:
+            id_ = id_.lower()
+        known_id = id_ in self.playlist_set
 
         try:
             playlists = self.playlist_model.similar_users_by_factors(
-                playlist_factors, N=N
+                playlist_factors, N=N + 1 if known_id else N
             )
         except Exception as e:
-            print(e)
+            log.error("Error during similar_users_by_factors: %s", e)
+            playlists = []
 
-        if update and id_ and id_ not in self.playlist_set:
+        if update and id_ and not known_id:
             self.playlist_model.add_users(playlist_factors)
             playlist_id = len(self.playlist_ids)
             self.playlist_ids.append(id_)
             self.playlist_set.add(id_)
             assert len(self.playlist_ids) == len(self.playlist_set)
-            log.info(playlist_id, id_)
+            log.info("Playlist %s stored as %s", id_, playlist_id)
             self.dirty_playlists = True
 
         new_artists = None
@@ -172,6 +176,7 @@ class Model:
             )
             new_artists = [self.artist_names[pair[0]] for pair in artists]
         new_playlists = [self.playlist_ids[pair[0]] for pair in playlists]
+        new_playlists = [i for i in new_playlists if i != id_]
         return {"artists": new_artists, "playlists": new_playlists}
 
     def reset(self):
