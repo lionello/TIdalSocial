@@ -1,12 +1,13 @@
 import { exec } from "child_process"
 import express from "express"
+import helmet from "helmet"
 import * as Path from "path"
-import { fileURLToPath } from "url"
 import qs from "qs"
+import { fileURLToPath } from "url"
 
 import { HTTPError, HTTPStatusCode } from "./error.js"
-import { processPlaylist } from "./model.js"
-import { importFromURLParsed } from "./parse.js"
+import { processPlaylist, defaultPythonPath } from "./model.js"
+import { importFromURLParsed, makeEmbedUrl } from "./parse.js"
 import { VERSION } from "./version.js"
 import { verify } from "./hashcash.js"
 
@@ -15,7 +16,6 @@ const DEFAULT_VERSION_TIMEOUT = "60"
 const UNKNOWN_ARTIST_MIX = "005002a0ac4ea84e66f2476d2857c6"
 
 export const app = express()
-const defaultPythonPath = process.platform != "win32" ? "python3" : "py"
 
 function dirname(): string {
   // From https://stackoverflow.com/a/50052194/2017049
@@ -28,7 +28,18 @@ function makeAbsolute(relative: string): string {
   return Path.join(dirname(), relative)
 }
 
-// app.use(helmet())
+function safeSetTimeout(
+  req,
+  callback: (...args: any[]) => void,
+  ms?: number,
+  ...args: any[]
+): void {
+  const timer = setTimeout(callback, ms, ...args)
+  // Abandon the timer when the client disconnects
+  req.on("close", () => clearTimeout(timer))
+}
+
+app.use(helmet({ contentSecurityPolicy: false }))
 
 // app.use(
 //   helmet.contentSecurityPolicy({
@@ -42,31 +53,23 @@ function makeAbsolute(relative: string): string {
 //   })
 // )
 
-function urlPrefix(id: string): string {
-  switch (id.length) {
-    case 36:
-      return "https://embed.tidal.com/playlists/"
-    case 30:
-      return "https://embed.tidal.com/mix/"
-    default:
-      return "https://embed.tidal.com/artist/"
+function verifyOrDelay(req, res, next) {
+  if (verify(req.body)) {
+    // HashCash verification passed; proceed
+    next()
+    return
   }
-}
-
-function makeUrl(id: string): string {
-  return urlPrefix(id) + id
+  // HashCash verification failed; delay the client 2s
+  safeSetTimeout(req, next, 2000)
 }
 
 app.post(
   "/url",
   express.text({ limit: 200, type: "application/x-www-form-urlencoded" }),
+  verifyOrDelay,
   (req, res, next) => {
     if (!req.accepts("json")) {
       throw new HTTPError("This API returns JSON", HTTPStatusCode.NOT_ACCEPTABLE)
-    }
-
-    if (!verify(req.body)) {
-      throw new HTTPError("Missing hash cash nonce", HTTPStatusCode.FORBIDDEN)
     }
 
     const { playlist_url, date, update = "1" } = qs.parse(req.body)
@@ -77,20 +80,17 @@ app.post(
     }
 
     if (typeof playlist_url !== "string" || !SAFE_URL.test(playlist_url)) {
-      console.debug(req.body)
-      throw new HTTPError(
-        "Missing or invalid 'playlist_url'",
-        HTTPStatusCode.BAD_REQUEST
-      )
+      console.debug("Invalid body:", req.body)
+      throw new HTTPError("Invalid 'playlist_url'", HTTPStatusCode.BAD_REQUEST)
     }
 
     importFromURLParsed(playlist_url)
       .then((playlist) => processPlaylist(playlist, { update: !!update }))
-      .then((response) => {
-        console.debug(response)
+      .then((rec) => {
+        console.debug("Recommendation:", rec)
         // Turn playlist IDs into valid URLs before returning to the client
-        response.playlists = (response.playlists || [UNKNOWN_ARTIST_MIX]).map(makeUrl)
-        res.send(response)
+        rec.playlists = (rec.playlists || [UNKNOWN_ARTIST_MIX]).map(makeEmbedUrl)
+        res.send(rec)
       })
       .catch(next)
   }
@@ -98,29 +98,29 @@ app.post(
 
 app.get("/version", (req, res) => {
   const timeout = req.query["timeout"] as string
-  const timer = setTimeout(
+  safeSetTimeout(
+    req,
     () => res.send({ VERSION }),
     1000 * Number.parseInt(timeout || DEFAULT_VERSION_TIMEOUT)
   )
-  // Abandon the timer when the client disconnects
-  req.on("close", () => clearTimeout(timer))
 })
 
 app.use("/js", express.static(makeAbsolute(".")))
 
 app.use(express.static(makeAbsolute("../../static")))
 
-app.get("/py", (req, res, next) => {
+app.post("/py", (req, res, next) => {
   exec(defaultPythonPath + " --version", (err, stdin, stderr) => {
     if (err) next(err)
     else res.send(stdin + stderr)
   })
 })
 
+// Custom error handler
 app.use(function (err, req, res, next) {
   if (!err || res.headersSent || !req.accepts("json")) {
     return next(err)
   }
-  console.error(err.stack)
+  console.error(err.stack || err)
   res.status(err.status || err.statusCode || 500).send({ error: err.message })
 })

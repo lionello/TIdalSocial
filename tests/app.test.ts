@@ -87,6 +87,19 @@ describe("app", function () {
         .end(done)
     })
 
+    it("200 no hashCash", function (done) {
+      this.timeout(2200)
+      request(app)
+        .post("/url")
+        .send(
+          "update=0&playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F3751614e-3827-4860-819c-b9474a000dbb&date=" +
+            encodeURIComponent(new Date().toString())
+        )
+        .expect("Content-Type", /^application\/json/)
+        .expect(200)
+        .end(done)
+    })
+
     it("403", function (done) {
       request(app)
         .post("/url")
@@ -94,7 +107,7 @@ describe("app", function () {
           "playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F3751614e-3827-4860-819c-b9474a000dbb&date=Sat+May+01+2021+22%3A06%3A15+GMT-0700+%28PDT%29"
         )
         .expect("Content-Type", /^application\/json/)
-        .expect(403, { error: "Missing hash cash nonce" })
+        .expect(403, { error: "Time skew too large" })
         .end(done)
     })
   })

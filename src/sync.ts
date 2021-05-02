@@ -28,4 +28,4 @@ export async function watchVersion(forever: boolean): Promise<void> {
   } while (forever)
 }
 
-globalThis.onload = (ev) => watchVersion(true)
+globalThis.onload = () => watchVersion(true)

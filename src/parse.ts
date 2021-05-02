@@ -98,6 +98,21 @@ async function importFromURLCached(url: string): Promise<PageInfo> {
   }
 }
 
+function embedUrlPrefix(id: string): string {
+  switch (id.length) {
+    case 36:
+      return "https://embed.tidal.com/playlists/"
+    case 30:
+      return "https://embed.tidal.com/mix/"
+    default:
+      return "https://embed.tidal.com/artist/"
+  }
+}
+
+export function makeEmbedUrl(id: string): string {
+  return embedUrlPrefix(id) + id
+}
+
 export function getPlaylistURL(guid: string): string {
   return "https://tidal.com/browse/playlist/" + guid
 }
