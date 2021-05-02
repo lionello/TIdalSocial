@@ -1,5 +1,7 @@
 import fetch from "node-fetch"
-import { spawn, exec } from "child_process"
+import { spawn } from "child_process"
+
+import { HTTPError } from "./error.js"
 
 export interface Track {
   trackName: string
@@ -45,7 +47,16 @@ export async function processPlaylist(
   return response.json()
 }
 
-const child = spawn("python3", ["model/app.py"], {
+export async function saveModel(): Promise<void> {
+  const response = await fetch(`${MODEL_HOST}/save`, { method: "POST" })
+  if (response.status !== 204) {
+    throw new HTTPError(await response.text())
+  }
+}
+
+export const defaultPythonPath = process.platform != "win32" ? "python3" : "py"
+
+const child = spawn(defaultPythonPath, ["model/app.py"], {
   stdio: ["ignore", "inherit", "inherit"],
 })
 

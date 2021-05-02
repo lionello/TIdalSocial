@@ -94,6 +94,17 @@ class TestModel(unittest.TestCase):
             self.assertFalse(self.model.dirty_playlists)
             self.assertFalse(self.model.dirty_artists)
 
+    def test_add_playlist(self):
+        playlist_factors = numpy.random.rand(Model.FACTORS)
+        no = self.model.add_playlist(playlist_factors, "test_add_playlist")
+        self.assertEqual(no, 0)
+        self.assertTrue(self.model.dirty_playlists)
+        self.assertFalse(self.model.dirty_artists)
+        no = self.model.add_playlist(playlist_factors, "test_add_playlist2")
+        self.assertEqual(no, 1)
+        self.assertTrue(self.model.dirty_playlists)
+        self.assertFalse(self.model.dirty_artists)
+
     def test_process_playlist(self):
         self.model.load(dir=self.TEST_MODEL)
         res = self.model.process_playlist([{"artists": ["1"]}], "test_process_playlist")

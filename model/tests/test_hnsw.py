@@ -141,24 +141,28 @@ class TestHNSW(unittest.TestCase):
         self.test_add_users(0)
 
     def test_add_item(self, items=ITEMS):
-        self.model.add_items(np.random.rand(FACTORS))
+        count = self.model.add_items(np.random.rand(FACTORS))
+        self.assertEqual(items + 1, count)
         self.assertEqual(items + 1, self.model.similar_items_index.get_current_count())
         self.assertEqual(items + 1, self.model.recommend_index.get_current_count())
         self.assertEqual(items + 1, len(self.model.item_factors))
 
     def test_add_items(self, items=ITEMS):
-        self.model.add_items(np.random.rand(2, FACTORS))
+        count = self.model.add_items(np.random.rand(2, FACTORS))
+        self.assertEqual(items + 2, count)
         self.assertEqual(items + 2, self.model.similar_items_index.get_current_count())
         self.assertEqual(items + 2, self.model.recommend_index.get_current_count())
         self.assertEqual(items + 2, len(self.model.item_factors))
 
     def test_add_user(self, users=USERS):
-        self.model.add_users(np.random.rand(FACTORS))
+        count = self.model.add_users(np.random.rand(FACTORS))
+        self.assertEqual(users + 1, count)
         self.assertEqual(users + 1, self.model.similar_users_index.get_current_count())
         self.assertEqual(users + 1, len(self.model.user_factors))
 
     def test_add_users(self, users=USERS):
-        self.model.add_users(np.random.rand(2, FACTORS))
+        count = self.model.add_users(np.random.rand(2, FACTORS))
+        self.assertEqual(users + 2, count)
         self.assertEqual(users + 2, self.model.similar_users_index.get_current_count())
         self.assertEqual(users + 2, len(self.model.user_factors))
 

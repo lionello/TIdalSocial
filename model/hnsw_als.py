@@ -230,15 +230,16 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
         else:
             return numpy.vstack((matrix, factors))
 
-    def add_users(self, user_factors, grow: int = 16):
+    def add_users(self, user_factors, grow: int = 16) -> int:
         self.user_factors = self._add_factors_to_matrix(self.user_factors, user_factors)
         if self.approximate_similar_users:
             if self.similar_users_index is None:
                 self._build_similar_users_index()
             else:
                 self._add_factors_to_index(self.similar_users_index, user_factors, grow)
+        return len(self.user_factors)
 
-    def add_items(self, item_factors, grow: int = 16):
+    def add_items(self, item_factors, grow: int = 16) -> int:
         self.item_factors = self._add_factors_to_matrix(self.item_factors, item_factors)
         if self.approximate_similar_items:
             if self.similar_items_index is None:
@@ -255,6 +256,7 @@ class HNSWLibAlternatingLeastSquares(AlternatingLeastSquares):
                 if max_norm > self.max_norm:
                     self.max_norm = max_norm
                 self._add_factors_to_index(self.recommend_index, extra, grow)
+        return len(self.item_factors)
 
     def recommend(
         self,

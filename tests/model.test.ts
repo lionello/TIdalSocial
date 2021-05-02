@@ -1,6 +1,7 @@
 import { assert } from "chai"
 import { describe, it } from "mocha"
-import { processPlaylist } from "../src/model.js"
+
+import { processPlaylist, saveModel } from "../src/model.js"
 
 describe("model", function () {
   it("processPlaylist", async function () {
@@ -14,5 +15,10 @@ describe("model", function () {
     )
     assert.isNotEmpty(playlist.artists)
     assert.isNotEmpty(playlist.playlists)
+  })
+
+  it.skip("saveModel", async function () {
+    this.timeout(5000)
+    await saveModel()
   })
 })

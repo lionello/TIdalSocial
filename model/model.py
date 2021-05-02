@@ -165,13 +165,7 @@ class Model:
             playlists = []
 
         if update and id_ and not known_id:
-            self.playlist_model.add_users(playlist_factors)
-            playlist_id = len(self.playlist_ids)
-            self.playlist_ids.append(id_)
-            self.playlist_set.add(id_)
-            assert len(self.playlist_ids) == len(self.playlist_set)
-            log.debug("Playlist %s stored as %s", id_, playlist_id)
-            self.dirty_playlists = True
+            self.add_playlist(playlist_factors, id_)
 
         new_artists = None
         if recommend:
@@ -182,6 +176,17 @@ class Model:
         new_playlists = [self.playlist_ids[pair[0]] for pair in playlists]
         new_playlists = [i for i in new_playlists if i != id_]
         return {"artists": new_artists, "playlists": new_playlists}
+
+    def add_playlist(self, playlist_factors, id_: str) -> int:
+        assert id_ and id_ not in self.playlist_set
+        playlist_id = len(self.playlist_ids)
+        count = self.playlist_model.add_users(playlist_factors)
+        self.playlist_ids.append(id_)
+        self.playlist_set.add(id_)
+        assert len(self.playlist_ids) == len(self.playlist_set) == count
+        log.debug("Playlist %s stored as %s", id_, playlist_id)
+        self.dirty_playlists = True
+        return playlist_id
 
     def reset(self):
         self.playlist_model.set_user_factors([])

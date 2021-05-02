@@ -93,6 +93,12 @@ def playlist():
     return process_playlist(body, update=update, recommend=recommend)
 
 
+@app.route("/save", methods=["POST"])
+def save():
+    model.save()
+    return "", 204
+
+
 @app.errorhandler(Exception)
 def handle_error(error):
     code = 500
