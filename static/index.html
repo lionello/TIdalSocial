@@ -83,7 +83,6 @@
         },
     });
     function hashCash(body, nonce=0, limit=5) {
-        body.set("date", new Date);
         if (!window.crypto || !window.crypto.subtle || !window.crypto.subtle.digest) {
             return body;
         }
@@ -99,9 +98,10 @@
     function handleSubmit(e) {
         e.preventDefault();
         document.getElementById("playlist_url").blur();
+        app.items = ['','',''];
         const fd = new FormData(e.target);
         const body = new URLSearchParams(fd);
-        app.items = ['','',''];
+        body.set("date", new Date);
         hashCash(body)
             .then(body => fetch("/url", {method: "post", body}))
             .then(res => res.json())

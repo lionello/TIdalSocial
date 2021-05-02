@@ -1,7 +1,10 @@
 import { exec } from "child_process"
+import { createHash } from "crypto"
 import express from "express"
 import * as Path from "path"
 import { fileURLToPath } from "url"
+import qs from "qs"
+
 import { HTTPError, HTTPStatusCode } from "./error.js"
 import { processPlaylist } from "./model.js"
 import { importFromURLParsed } from "./parse.js"
@@ -38,26 +41,45 @@ function makeAbsolute(relative: string): string {
 //   })
 // )
 
-app.post("/url", express.urlencoded({ extended: true }), (req, res, next) => {
-  if (!req.accepts("json")) {
-    throw new HTTPError("This API returns JSON", HTTPStatusCode.NOT_ACCEPTABLE)
-  }
-  const { playlist_url } = req.body
-  if (typeof playlist_url !== "string" || !SAFE_URL.test(playlist_url)) {
-    console.debug(req.body)
-    throw new HTTPError("Missing or invalid 'playlist_url'", HTTPStatusCode.BAD_REQUEST)
-  }
+app.post(
+  "/url",
+  express.text({ limit: 200, type: "application/x-www-form-urlencoded" }),
+  (req, res, next) => {
+    if (!req.accepts("json")) {
+      throw new HTTPError("This API returns JSON", HTTPStatusCode.NOT_ACCEPTABLE)
+    }
 
-  importFromURLParsed(playlist_url)
-    .then((playlist) => {
-      return processPlaylist(playlist)
-    })
-    .then((response) => {
-      console.debug(response)
-      res.send(response)
-    })
-    .catch(next)
-})
+    const hash = createHash("sha256").update(req.body).digest().readUInt16BE(0)
+    if (hash >= 5) {
+      throw new HTTPError("Missing hash cash nonce", HTTPStatusCode.FORBIDDEN)
+    }
+
+    const { playlist_url, date } = qs.parse(req.body)
+
+    const deltaMs = Math.abs(Date.parse(date as string) - Date.now())
+    if (deltaMs > 5 * 60 * 1000 || isNaN(deltaMs)) {
+      throw new HTTPError("Time skew too large", HTTPStatusCode.FORBIDDEN)
+    }
+
+    if (typeof playlist_url !== "string" || !SAFE_URL.test(playlist_url)) {
+      console.debug(req.body)
+      throw new HTTPError(
+        "Missing or invalid 'playlist_url'",
+        HTTPStatusCode.BAD_REQUEST
+      )
+    }
+
+    importFromURLParsed(playlist_url)
+      .then((playlist) => {
+        return processPlaylist(playlist)
+      })
+      .then((response) => {
+        console.debug(response)
+        res.send(response)
+      })
+      .catch(next)
+  }
+)
 
 app.get("/version", (req, res) => {
   const timeout = req.query["timeout"] as string
