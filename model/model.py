@@ -108,6 +108,7 @@ class Model:
         self.dirty_playlists = True
 
     def load(self, dir=STORAGE_FOLDER):
+        log.info("Loading model from " + dir)
         self.playlist_model.load_indexes(dir)
         self.set_artists(load_json(path.join(dir, ARTISTS_JSON)))
         self.set_playlist_urls(load_json(path.join(dir, PLAYLISTS_JSON)))
@@ -115,10 +116,12 @@ class Model:
         self.dirty_artists = False
 
     def process_playlist(self, tracks: list, id_: str, **kwargs) -> dict:
+        log.debug("Processing playlist %s", id_)
         artists = [artist for track in tracks for artist in track["artists"]]
         return self.process_artists(artists, id_, **kwargs)
 
     def save(self, dir=STORAGE_FOLDER):
+        log.info("Saving model to " + dir)
         assert safe_len(self.playlist_model.user_factors) == len(self.playlist_ids)
         assert safe_len(self.playlist_model.item_factors) == len(self.artist_names)
         self.playlist_model.save_indexes(
@@ -134,6 +137,7 @@ class Model:
     def process_artists(
         self, artists: list, id_: str, update=True, recommend=True, N: int = 4
     ) -> dict:
+        log.debug("Processing artists for playlist %s", id_)
         assert N > 0
         # TODO: count multiple occurrences of the same artist so we can improve confidence
         artist_ids = [self.artist_by_name.get(canonicalize(name)) for name in artists]
@@ -141,7 +145,7 @@ class Model:
         artist_ids = [a for a in artist_ids if a != None]
         if len(artist_ids) == 0:
             log.warning("No known artists", extra={"artists": artists})
-            return None
+            return {}
         # TODO: determine proper "bm25" weight for each artist
         user_plays = scipy.sparse.coo_matrix(
             ([444.0] * len(artist_ids), ([0] * len(artist_ids), artist_ids)),
@@ -166,7 +170,7 @@ class Model:
             self.playlist_ids.append(id_)
             self.playlist_set.add(id_)
             assert len(self.playlist_ids) == len(self.playlist_set)
-            log.info("Playlist %s stored as %s", id_, playlist_id)
+            log.debug("Playlist %s stored as %s", id_, playlist_id)
             self.dirty_playlists = True
 
         new_artists = None

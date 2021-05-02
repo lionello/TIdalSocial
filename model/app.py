@@ -4,7 +4,7 @@ import hmac
 import json
 import secrets
 import time
-from urllib.parse import urlparse
+from signal import SIGINT, SIGTERM, signal
 
 from flask import Flask, jsonify, request, send_from_directory
 from werkzeug.exceptions import BadRequest, HTTPException
@@ -114,5 +114,12 @@ def require_csrftoken():
     # token = request.headers["x-csrftoken"]
 
 
+def signal_handler(signal_received, frame):
+    # SIGINT or ctrl-C detected; exit without error
+    model.save()
+    exit(0)
+
+
 if __name__ == "__main__":
+    signal(SIGTERM, signal_handler)
     app.run()

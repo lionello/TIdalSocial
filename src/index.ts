@@ -4,8 +4,14 @@ import { readdir } from "fs/promises"
 
 const { PORT: port = 3000 } = process.env
 
-app.listen(port, function () {
+const server = app.listen(port, function () {
   console.log(`HTTP server started at http://localhost:${this.address().port}`)
+})
+
+process.on("SIGTERM", () => {
+  server.close(() => {
+    console.debug("HTTP server closed")
+  })
 })
 
 // function isSuperset<T>(set: Set<T>, subset: Iterable<T>): boolean {

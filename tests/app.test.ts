@@ -54,7 +54,7 @@ describe("app", function () {
           .send(hashCash("update=0&playlist_url=" + encodeURIComponent(url)))
           .redirects(0)
           .expect("Content-Type", /^application\/json/)
-          .expect(200)
+          .expect(200, /"https:\/\/embed\.tidal\.com\//)
           .end(done)
       })
     }

@@ -20,8 +20,8 @@ export interface TrackList {
 const MODEL_HOST = "http://localhost:5000"
 
 export interface Recommendation {
-  playlists: string[]
-  artists: string[]
+  playlists?: string[]
+  artists?: string[]
 }
 
 type Options = {
@@ -48,6 +48,11 @@ export async function processPlaylist(
 const child = spawn("python3", ["model/app.py"], {
   stdio: ["ignore", "inherit", "inherit"],
 })
+
 child.on("error", (err) => {
   console.error(err)
+})
+
+process.on("SIGTERM", () => {
+  child.kill("SIGTERM")
 })

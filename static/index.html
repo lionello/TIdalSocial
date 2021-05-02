@@ -68,14 +68,14 @@
 <body>
     <h3><img class="logo" src="/favicon.svg"> TIDAL SOCIAL</h3>
     <form id="form1" method="POST" action="/url">
-        <input type="url" required id="playlist_url" name="playlist_url" placeholder="Playlist or mix URL" autocomplete="off" autofocus size="70">
+        <input type="url" required id="playlist_url" name="playlist_url" placeholder="Paste a playlist or mix URL here to get recommendations" autocomplete="off" autofocus size="70">
         <input type="submit">
     </form>
 
     <div id="app">
         <section id="example-1">
             <article v-for="item in items" :key="item">
-                <tidal :id="item"></tidal>
+                <tidal :src="item"></tidal>
             </article>
         </section>
     </div>

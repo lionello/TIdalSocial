@@ -192,7 +192,7 @@ class TestModel(unittest.TestCase):
         res = self.model.process_artists(
             ["nonexistentartist"], "test_process_artists_unknown"
         )
-        self.assertIsNone(res)
+        self.assertDictEqual(res, {})
         self.assertFalse(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
 

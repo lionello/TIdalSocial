@@ -1,12 +1,8 @@
 <template>
   <div class="tidal-embed">
     <iframe
-      v-if="id"
-      v-bind:src="
-        'https://embed.tidal.com/playlists/' +
-        id +
-        '?layout=gridify&coverInitially=true&disableAnalytics=true'
-      "
+      v-if="src"
+      v-bind:src="src + '?layout=gridify&coverInitially=true&disableAnalytics=true'"
       allowfullscreen="allowfullscreen"
       frameborder="0"
     ></iframe>
@@ -15,11 +11,10 @@
 
 <script>
 module.exports = {
-  props: ["id"],
+  props: ["src"],
   data: function () {
     return {
-      // id: "3751614e-3827-4860-819c-b9474a000dbb",
-      // src: "https://embed.tidal.com/playlists/3751614e-3827-4860-819c-b9474a000dbb?layout=gridify",
+      // src: "https://embed.tidal.com/playlists/3751614e-3827-4860-819c-b9474a000dbb",
     }
   },
 }

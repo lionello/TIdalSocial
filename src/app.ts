@@ -12,6 +12,7 @@ import { verify } from "./hashcash.js"
 
 const SAFE_URL = /^https:\/\/(listen\.|embed\.)?tidal\.com\//
 const DEFAULT_VERSION_TIMEOUT = "60"
+const UNKNOWN_ARTIST_MIX = "005002a0ac4ea84e66f2476d2857c6"
 
 export const app = express()
 const defaultPythonPath = process.platform != "win32" ? "python3" : "py"
@@ -41,6 +42,21 @@ function makeAbsolute(relative: string): string {
 //   })
 // )
 
+function urlPrefix(id: string): string {
+  switch (id.length) {
+    case 36:
+      return "https://embed.tidal.com/playlists/"
+    case 30:
+      return "https://embed.tidal.com/mix/"
+    default:
+      return "https://embed.tidal.com/artist/"
+  }
+}
+
+function makeUrl(id: string): string {
+  return urlPrefix(id) + id
+}
+
 app.post(
   "/url",
   express.text({ limit: 200, type: "application/x-www-form-urlencoded" }),
@@ -69,11 +85,11 @@ app.post(
     }
 
     importFromURLParsed(playlist_url)
-      .then((playlist) => {
-        return processPlaylist(playlist, { update: !!update })
-      })
+      .then((playlist) => processPlaylist(playlist, { update: !!update }))
       .then((response) => {
         console.debug(response)
+        // Turn playlist IDs into valid URLs before returning to the client
+        response.playlists = (response.playlists || [UNKNOWN_ARTIST_MIX]).map(makeUrl)
         res.send(response)
       })
       .catch(next)
