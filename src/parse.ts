@@ -2,7 +2,7 @@ import { promises as FS } from "fs"
 import * as Path from "path"
 import * as jsdom from "jsdom"
 import { Track, TrackList } from "./model"
-import { HTTPError, HTTPStatusCode } from "./error.js"
+import { HTTPError } from "./error.js"
 
 const PROJECT_ROOT = "."
 const STORAGE_FOLDER = process.env.STORAGE_FOLDER || PROJECT_ROOT

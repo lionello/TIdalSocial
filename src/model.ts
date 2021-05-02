@@ -1,4 +1,5 @@
 import fetch from "node-fetch"
+import { spawn, exec } from "child_process"
 
 export interface Track {
   trackName: string
@@ -43,3 +44,10 @@ export async function processPlaylist(
   )
   return response.json()
 }
+
+const child = spawn("python3", ["model/app.py"], {
+  stdio: ["ignore", "inherit", "inherit"],
+})
+child.on("error", (err) => {
+  console.error(err)
+})
