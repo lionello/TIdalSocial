@@ -1,5 +1,4 @@
 import { exec } from "child_process"
-import { createHash } from "crypto"
 import express from "express"
 import * as Path from "path"
 import { fileURLToPath } from "url"
@@ -9,6 +8,7 @@ import { HTTPError, HTTPStatusCode } from "./error.js"
 import { processPlaylist } from "./model.js"
 import { importFromURLParsed } from "./parse.js"
 import { VERSION } from "./version.js"
+import { verify } from "./hashcash.js"
 
 const SAFE_URL = /^https:\/\/(listen\.|embed\.)?tidal\.com\//
 const DEFAULT_VERSION_TIMEOUT = "60"
@@ -49,8 +49,7 @@ app.post(
       throw new HTTPError("This API returns JSON", HTTPStatusCode.NOT_ACCEPTABLE)
     }
 
-    const hash = createHash("sha256").update(req.body).digest().readUInt16BE(0)
-    if (hash >= 5) {
+    if (!verify(req.body)) {
       throw new HTTPError("Missing hash cash nonce", HTTPStatusCode.FORBIDDEN)
     }
 

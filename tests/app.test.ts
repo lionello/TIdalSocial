@@ -1,6 +1,7 @@
 import { describe, it } from "mocha"
 import request from "supertest"
 import { app } from "../src/app.js"
+import { verify } from "../src/hashcash.js"
 import { VERSION } from "../src/version.js"
 
 describe("app", function () {
@@ -28,6 +29,14 @@ describe("app", function () {
     }
   })
 
+  function hashCash(body: string): string {
+    const form = body + "&date=" + encodeURIComponent(new Date().toString()) + "&nonce="
+    for (let nonce = 0; ; nonce++) {
+      body = form + nonce
+      if (verify(body)) return body
+    }
+  }
+
   describe("POST /url", function () {
     for (const url of [
       // "3751614e-3827-4860-819c-b9474a000dbb", // implicit playlist
@@ -42,7 +51,7 @@ describe("app", function () {
       it(url, function (done) {
         request(app)
           .post("/url")
-          .send("playlist_url=" + encodeURIComponent(url))
+          .send(hashCash("playlist_url=" + encodeURIComponent(url)))
           .redirects(0)
           .expect("Content-Type", /^application\/json/)
           .expect(200)
@@ -58,7 +67,7 @@ describe("app", function () {
       it(body, function (done) {
         request(app)
           .post("/url")
-          .send(body)
+          .send(hashCash(body))
           .expect("Content-Type", /^application\/json/)
           .expect(400, { error: "Missing or invalid 'playlist_url'" })
           .end(done)
@@ -68,9 +77,24 @@ describe("app", function () {
     it("404", function (done) {
       request(app)
         .post("/url")
-        .send("playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F12341234-1234-1234")
+        .send(
+          hashCash(
+            "playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F12341234-1234-1234"
+          )
+        )
         .expect("Content-Type", /^application\/json/)
         .expect(404, { error: "Not Found" })
+        .end(done)
+    })
+
+    it("403", function (done) {
+      request(app)
+        .post("/url")
+        .send(
+          "playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F3751614e-3827-4860-819c-b9474a000dbb&date=Sat+May+01+2021+22%3A06%3A15+GMT-0700+%28PDT%29"
+        )
+        .expect("Content-Type", /^application\/json/)
+        .expect(403, { error: "Missing hash cash nonce" })
         .end(done)
     })
   })
