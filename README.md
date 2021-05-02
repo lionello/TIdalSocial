@@ -1,4 +1,4 @@
-# TIdalSocial ![alt text](https://github.com/lionello/TIdalSocial/blob/master/static/favicon-32x32.png?raw=true)
+# TIdalSocial ![logo](https://github.com/lionello/TIdalSocial/blob/master/static/favicon-32x32.png?raw=true)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![TypeScript](https://img.shields.io/badge/%3C%2F%3E-TypeScript-%230074c1.svg)](https://www.typescriptlang.org/)
