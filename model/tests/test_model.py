@@ -67,7 +67,7 @@ class TestModel(unittest.TestCase):
         self.assertEqual(PLAYLISTS, len(self.model.playlist_ids))
 
     def test_load(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         self.assertFalse(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
 
@@ -84,13 +84,23 @@ class TestModel(unittest.TestCase):
 
     def test_fit_then_save(self):
         self.test_fit()
-        self.model.save(dir=self.TEST_MODEL)
+        self.model.save(folder=self.TEST_MODEL)
         self.assertFalse(self.model.dirty_playlists)
         self.assertFalse(self.model.dirty_artists)
 
     def test_save_dir(self):
+        self.test_add_artists()
+        self.test_add_playlist()
         with tempfile.TemporaryDirectory() as tmp:
-            self.model.save(dir=tmp)
+            self.model.save(folder=tmp)
+            self.assertFalse(self.model.dirty_playlists)
+            self.assertFalse(self.model.dirty_artists)
+
+    def test_save_async_dir(self):
+        self.test_add_artists()
+        self.test_add_playlist()
+        with tempfile.TemporaryDirectory() as tmp:
+            self.model.save_async(folder=tmp)
             self.assertFalse(self.model.dirty_playlists)
             self.assertFalse(self.model.dirty_artists)
 
@@ -99,14 +109,12 @@ class TestModel(unittest.TestCase):
         no = self.model.add_playlist(playlist_factors, "test_add_playlist")
         self.assertEqual(no, 0)
         self.assertTrue(self.model.dirty_playlists)
-        self.assertFalse(self.model.dirty_artists)
         no = self.model.add_playlist(playlist_factors, "test_add_playlist2")
         self.assertEqual(no, 1)
         self.assertTrue(self.model.dirty_playlists)
-        self.assertFalse(self.model.dirty_artists)
 
     def test_process_playlist(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_playlist([{"artists": ["1"]}], "test_process_playlist")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
@@ -114,7 +122,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_process_playlist_no_id(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_playlist([{"artists": ["1"]}], None)
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
@@ -122,7 +130,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_process_playlist_with_unknown(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_playlist(
             [{"artists": ["1", "nonexistentartist"]}],
             "test_process_playlist_with_unknown",
@@ -133,7 +141,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_process_artists(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_artists(["2"], "test_process_artists")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
@@ -141,7 +149,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_process_artists_no_id(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_artists(["2"], None)
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
@@ -149,7 +157,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_process_artists_twice(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_artists(["1"], "2")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])
@@ -167,7 +175,7 @@ class TestModel(unittest.TestCase):
         self.assertNotIn("test_process_artists", res["playlists"])
 
     def test_process_artists_no_update(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_artists(
             ["1"], "test_process_artists_no_update", update=False
         )
@@ -177,7 +185,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_process_artists_no_recommend(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_artists(
             ["1"], "test_process_artists_no_recommend", recommend=False
         )
@@ -187,7 +195,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_process_artists_no_update_recommend(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_artists(
             ["1"],
             "test_process_artists_no_update_recommend",
@@ -214,7 +222,7 @@ class TestModel(unittest.TestCase):
         self.assertFalse(self.model.dirty_artists)
 
     def test_load_then_process(self):
-        self.model.load(dir=self.TEST_MODEL)
+        self.model.load(folder=self.TEST_MODEL)
         res = self.model.process_artists(["1"], "test_load_then_process")
         self.assertTrue(res["artists"])
         self.assertTrue(res["playlists"])

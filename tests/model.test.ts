@@ -11,14 +11,13 @@ describe("model", function () {
         tracks: [{ trackName: "Creep", artists: ["Radiohead"] }],
         url: "https://tidal.com/blah",
       },
-      { update: false }
+      { update: false, recommend: true }
     )
     assert.isNotEmpty(playlist.artists)
     assert.isNotEmpty(playlist.playlists)
   })
 
-  it.skip("saveModel", async function () {
-    this.timeout(5000)
+  it("saveModel", async function () {
     await saveModel()
   })
 })

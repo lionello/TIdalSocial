@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 import json
 import logging
+import os
 import re
 import unicodedata
-from os import getenv, path
 
 import numpy as np
 import scipy
@@ -12,8 +12,8 @@ from implicit.nearest_neighbours import bm25_weight
 
 ARTISTS_JSON = "artists.json"
 PLAYLISTS_JSON = "playlists.json"
-PROJECT_ROOT = path.dirname(path.dirname(path.abspath(__file__)))
-STORAGE_FOLDER = getenv("STORAGE_FOLDER", PROJECT_ROOT)
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STORAGE_FOLDER = os.getenv("STORAGE_FOLDER", PROJECT_ROOT)
 
 log = logging.getLogger("model")
 
@@ -79,8 +79,9 @@ class Model:
         self.artist_by_name = {}
         self.playlist_ids = []
         self.playlist_set = set()
-        self.dirty_playlists = False
-        self.dirty_artists = False
+        self.dirty_playlists = 0
+        self.dirty_artists = 0
+        self.child_pid = 0
 
     def add_artists(self, artist_factors, artists_names: list):
         new_artists = [canonicalize(a) for a in artists_names]
@@ -90,49 +91,65 @@ class Model:
     def set_artists(self, artist_names: list):
         self.artist_names = artist_names
         log.info("Loaded %s artists" % len(self.artist_names))
-        # print("Loaded %s artists" % len(self.playlist_model.item_factors))
         assert len(self.playlist_model.item_factors) == len(self.artist_names)
         # assert self.playlist_model.item_factors.shape[1] == self.playlist_model.factors
         self.artist_by_name = dict(
             zip(self.artist_names, range(len(self.artist_names)))
         )
-        self.dirty_artists = True
+        self.dirty_artists += len(artist_names) or 1
 
     def set_playlist_urls(self, playlist_ids: list):
         self.playlist_ids = playlist_ids
         log.info("Loaded %s playlists" % len(self.playlist_ids))
-        # print("Loaded %s playlists" % len(self.playlist_model.user_factors))
         assert len(self.playlist_model.user_factors) == len(self.playlist_ids)
         # assert self.playlist_model.user_factors.shape[1] == self.playlist_model.factors
         self.playlist_set = set(self.playlist_ids)
-        self.dirty_playlists = True
+        self.dirty_playlists += len(playlist_ids) or 1
 
-    def load(self, dir=STORAGE_FOLDER):
-        log.info("Loading model from " + dir)
-        self.playlist_model.load_indexes(dir)
-        self.set_artists(load_json(path.join(dir, ARTISTS_JSON)))
-        self.set_playlist_urls(load_json(path.join(dir, PLAYLISTS_JSON)))
-        self.dirty_playlists = False
-        self.dirty_artists = False
+    def load(self, folder=STORAGE_FOLDER):
+        log.info("Loading model from " + folder)
+        self.playlist_model.load_indexes(folder)
+        self.set_artists(load_json(os.path.join(folder, ARTISTS_JSON)))
+        self.set_playlist_urls(load_json(os.path.join(folder, PLAYLISTS_JSON)))
+        self.dirty_playlists = 0
+        self.dirty_artists = 0
 
     def process_playlist(self, tracks: list, id_: str, **kwargs) -> dict:
         log.debug("Processing playlist %s", id_)
         artists = [artist for track in tracks for artist in track["artists"]]
         return self.process_artists(artists, id_, **kwargs)
 
-    def save(self, dir=STORAGE_FOLDER):
-        log.info("Saving model to " + dir)
+    def save(self, folder=STORAGE_FOLDER):
+        log.info("Saving model to " + folder)
         assert safe_len(self.playlist_model.user_factors) == len(self.playlist_ids)
         assert safe_len(self.playlist_model.item_factors) == len(self.artist_names)
         self.playlist_model.save_indexes(
-            dir, save_items=self.dirty_artists, save_users=self.dirty_playlists
+            folder,
+            save_items=bool(self.dirty_artists),
+            save_users=bool(self.dirty_playlists),
         )
         if self.dirty_playlists:
-            self.dirty_playlists = False
-            save_json(path.join(dir, PLAYLISTS_JSON), self.playlist_ids)
+            self.dirty_playlists = 0
+            save_json(os.path.join(folder, PLAYLISTS_JSON), self.playlist_ids)
         if self.dirty_artists:
-            self.dirty_artists = False
-            save_json(path.join(dir, ARTISTS_JSON), self.artist_names)
+            self.dirty_artists = 0
+            save_json(os.path.join(folder, ARTISTS_JSON), self.artist_names)
+
+    def save_async(self, **kwargs) -> bool:
+        if self.dirty_artists == self.dirty_playlists == 0:
+            return False  # nothing to do here
+        if self.child_pid and os.waitpid(self.child_pid, os.WNOHANG) == (0, 0):
+            return False  # previous child is still busy saving
+        self.child_pid = os.fork()
+        if self.child_pid == 0:
+            try:
+                self.save(**kwargs)
+                os._exit(0)  # success
+            except:
+                os._exit(1)  # failure
+        self.dirty_artists = 0
+        self.dirty_playlists = 0
+        return True
 
     def process_artists(
         self, artists: list, id_: str, update=True, recommend=True, N: int = 4
@@ -185,7 +202,7 @@ class Model:
         self.playlist_set.add(id_)
         assert len(self.playlist_ids) == len(self.playlist_set) == count
         log.debug("Playlist %s stored as %s", id_, playlist_id)
-        self.dirty_playlists = True
+        self.dirty_playlists += 1
         return playlist_id
 
     def reset(self):
