@@ -1,4 +1,4 @@
-.git/
+.git/objects/
 node_modules/
 assets/
 cache/

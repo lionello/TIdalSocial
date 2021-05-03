@@ -26,6 +26,7 @@ COPY dist/ dist
 COPY model/ model
 COPY static/ static
 COPY package.json ./
+COPY .git/refs/heads/master static/GITHEAD
 
 EXPOSE 3000
 ARG STORAGE_FOLDER=/model
