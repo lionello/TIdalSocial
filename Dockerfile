@@ -5,23 +5,32 @@ COPY package.json package-lock.json ./
 RUN npm ci --production --no-optional \
     && npm cache clean --force
 
-FROM node:14-buster
+
+FROM node:14-buster AS python_pip
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    dumb-init \
     python3-dev \
     python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt /tmp/
-RUN pip3 install --no-cache-dir --upgrade pip setuptools wheel \
-    && pip3 install --no-cache-dir --requirement /tmp/requirements.txt
+RUN pip3 install --no-cache-dir --upgrade pip setuptools \
+    && pip3 install --no-cache-dir --user --requirement /tmp/requirements.txt
+
+
+FROM node:14-buster-slim
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    dumb-init \
+    libgomp1 \
+    python3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Use dumb-init https://github.com/Yelp/dumb-init
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 WORKDIR /app
 COPY --from=node_modules /app/node_modules/ node_modules
+COPY --from=python_pip /root/.local/ /root/.local
 COPY dist/ dist
 COPY model/ model
 COPY static/ static
