@@ -152,6 +152,9 @@ export async function importFromURLParsed(
   }
   const pageInfo = await importFromURLCached(url)
   const playlist = { id, url, ...pageInfo }
-  await FS.writeFile(jsonFile, JSON.stringify(playlist))
+  // Cache this playlist (but only if we actually parsed the tracks)
+  if (playlist.tracks.length > 0) {
+    await FS.writeFile(jsonFile, JSON.stringify(playlist))
+  }
   return playlist
 }
