@@ -9,10 +9,9 @@ const PROJECT_ROOT = "."
 const STORAGE_FOLDER = process.env.STORAGE_FOLDER || PROJECT_ROOT
 const DB_FOLDER = "db"
 const CACHE_FOLDER = "cache"
-const TIDAL_URL_REGEX = /([^/]+)\/([^/]+)$/
+const TIDAL_URL_REGEX = /([^/]+)s?\/([^/]+)$/
 const TRIM_REGEX = /^\s+|\s+\[[^\]]+\]|\s+\([^)]+\)|\s+$/g
 const BASE_URL = "https://tidal.com/"
-const EMBED_URL_PREFIX = "https://embed.tidal.com/"
 const BROWSE_URL_PREFIX = "https://tidal.com/browse/"
 
 function makeAbs(url: string): string {
@@ -95,22 +94,6 @@ async function importFromURLCached(url: string): Promise<PageInfo> {
   }
 }
 
-function embedTypeFromId(id: string): string {
-  switch (id.length) {
-    case 36:
-      // For some reason, the embed URLs use "playlists", not "playlist"
-      return "playlists"
-    case 30:
-      return "mix"
-    default:
-      return "artist"
-  }
-}
-
-export function makeEmbedUrl(id: string): string {
-  return EMBED_URL_PREFIX + embedTypeFromId(id) + "/" + id
-}
-
 export function makeBrowseUrl(type: string, id: string): string {
   return BROWSE_URL_PREFIX + type + "/" + id
 }
@@ -151,7 +134,7 @@ export async function importFromURLParsed(
       console.warn(e)
     }
   }
-  // TODO: canonicalize the URL to https://tidal.com/browse/playlist/…
+  // Canonicalize the URL to https://tidal.com/browse/…
   url = makeBrowseUrl(type, id)
   const pageInfo = await importFromURLCached(url)
   const playlist = { id, url, ...pageInfo }

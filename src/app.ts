@@ -7,12 +7,12 @@ import { fileURLToPath } from "url"
 
 import { HTTPError, HTTPStatusCode } from "./error.js"
 import { processPlaylist, defaultPythonPath, UNKNOWN_ARTIST_MIX } from "./model.js"
-import { importFromURLParsed, makeEmbedUrl } from "./parse.js"
+import { importFromURLParsed } from "./parse.js"
 import { VERSION } from "./version.js"
 import { verify } from "./hashcash.js"
 import NodeCache from "node-cache"
 
-const SAFE_URL = /^(https:\/\/)?(listen\.|embed\.)?tidal\.com\//
+const SAFE_URL = /^(https:\/\/)?(listen\.|embed\.)?tidal\.com\/(browse\/)?(playlists?|artist|mix)\/.+$/
 const DEFAULT_VERSION_TIMEOUT = "60"
 
 // Cache recommendation responses for 1 hour to lessen the load on the ML model
@@ -93,8 +93,7 @@ app.post(
         .then((playlist) => processPlaylist(playlist, { update: !!update }))
         .then((rec) => {
           console.debug("Recommendation:", rec)
-          // Turn playlist IDs into valid URLs before returning to the client
-          rec.playlists = (rec.playlists || [UNKNOWN_ARTIST_MIX]).map(makeEmbedUrl)
+          rec.playlists = rec.playlists || [UNKNOWN_ARTIST_MIX]
           urlCache.set(playlist_url, rec)
           res.send(rec)
         })
