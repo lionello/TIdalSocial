@@ -6,15 +6,14 @@ import qs from "qs"
 import { fileURLToPath } from "url"
 
 import { HTTPError, HTTPStatusCode } from "./error.js"
-import { processPlaylist, defaultPythonPath } from "./model.js"
+import { processPlaylist, defaultPythonPath, UNKNOWN_ARTIST_MIX } from "./model.js"
 import { importFromURLParsed, makeEmbedUrl } from "./parse.js"
 import { VERSION } from "./version.js"
 import { verify } from "./hashcash.js"
 import NodeCache from "node-cache"
 
-const SAFE_URL = /^https:\/\/(listen\.|embed\.)?tidal\.com\//
+const SAFE_URL = /^(https:\/\/)?(listen\.|embed\.)?tidal\.com\//
 const DEFAULT_VERSION_TIMEOUT = "60"
-const UNKNOWN_ARTIST_MIX = "005002a0ac4ea84e66f2476d2857c6"
 
 // Cache recommendation responses for 1 hour to lessen the load on the ML model
 const urlCache = new NodeCache({ stdTTL: 60 * 60, useClones: false })

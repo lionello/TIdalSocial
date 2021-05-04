@@ -1,5 +1,5 @@
 import { app } from "./app.js"
-import { getArtistURL, importFromURLParsed, setOffline } from "./parse.js"
+import { getArtistURL, importFromURLParsed } from "./parse.js"
 import { readdir } from "fs/promises"
 
 const { PORT: port = 3000 } = process.env

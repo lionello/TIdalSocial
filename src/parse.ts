@@ -2,7 +2,8 @@ import { promises as FS } from "fs"
 import * as Path from "path"
 import * as jsdom from "jsdom"
 import { Track, TrackList } from "./model"
-import { HTTPError } from "./error.js"
+import { HTTPError, HTTPStatusCode } from "./error.js"
+import { isOffline } from "./offline.js"
 
 const PROJECT_ROOT = "."
 const STORAGE_FOLDER = process.env.STORAGE_FOLDER || PROJECT_ROOT
@@ -11,12 +12,8 @@ const CACHE_FOLDER = "cache"
 const TIDAL_URL_REGEX = /([^/]+)\/([^/]+)$/
 const TRIM_REGEX = /^\s+|\s+\[[^\]]+\]|\s+\([^)]+\)|\s+$/g
 const BASE_URL = "https://tidal.com/"
-
-let offlineMode = false
-
-export function setOffline(offline = true): void {
-  offlineMode = offline
-}
+const EMBED_URL_PREFIX = "https://embed.tidal.com/"
+const BROWSE_URL_PREFIX = "https://tidal.com/browse/"
 
 function makeAbs(url: string): string {
   return new URL(url, BASE_URL).href
@@ -66,7 +63,7 @@ export function parsePlaylistDocument(playlist: Document): PageInfo {
 }
 
 async function importFromURL(url: string): Promise<PageInfo> {
-  if (offlineMode) throw new Error("Parser is in offline mode")
+  if (isOffline()) throw new HTTPError("Offline", HTTPStatusCode.NOT_FOUND)
   try {
     const dom = await jsdom.JSDOM.fromURL(url)
     return parsePlaylistDocument(dom.window.document)
@@ -98,32 +95,36 @@ async function importFromURLCached(url: string): Promise<PageInfo> {
   }
 }
 
-function embedUrlPrefix(id: string): string {
+function embedTypeFromId(id: string): string {
   switch (id.length) {
     case 36:
-      return "https://embed.tidal.com/playlists/"
+      // For some reason, the embed URLs use "playlists", not "playlist"
+      return "playlists"
     case 30:
-      return "https://embed.tidal.com/mix/"
+      return "mix"
     default:
-      return "https://embed.tidal.com/artist/"
+      return "artist"
   }
 }
 
 export function makeEmbedUrl(id: string): string {
-  return embedUrlPrefix(id) + id
+  return EMBED_URL_PREFIX + embedTypeFromId(id) + "/" + id
+}
+
+export function makeBrowseUrl(type: string, id: string): string {
+  return BROWSE_URL_PREFIX + type + "/" + id
 }
 
 export function getPlaylistURL(guid: string): string {
-  return "https://tidal.com/browse/playlist/" + guid
+  return makeBrowseUrl("playlist", guid)
 }
 
-// TODO "https://tidal.com/browse/mix/0104f851efc2d5803c03c6706572aa"
 export function getMixURL(id: string): string {
-  return "https://tidal.com/browse/mix/" + id
+  return makeBrowseUrl("mix", id)
 }
 
 export function getArtistURL(id: number): string {
-  return "https://tidal.com/browse/artist/" + id
+  return makeBrowseUrl("artist", id.toString())
 }
 
 function getJsonCacheName(type: string, id: string): string {
@@ -150,6 +151,8 @@ export async function importFromURLParsed(
       console.warn(e)
     }
   }
+  // TODO: canonicalize the URL to https://tidal.com/browse/playlist/…
+  url = makeBrowseUrl(type, id)
   const pageInfo = await importFromURLCached(url)
   const playlist = { id, url, ...pageInfo }
   // Cache this playlist (but only if we actually parsed the tracks)

@@ -29,8 +29,8 @@ describe("app", function () {
     }
   })
 
-  function hashCash(body: string): string {
-    const form = body + "&date=" + encodeURIComponent(new Date().toString())
+  function hashCash(body: string, date: string = new Date().toString()): string {
+    const form = body + "&date=" + encodeURIComponent(date)
     for (let nonce = 0; ; nonce++) {
       body = form + "&nonce=" + nonce
       if (verify(body)) return body
@@ -39,11 +39,11 @@ describe("app", function () {
 
   describe("POST /url", function () {
     for (const url of [
-      // "3751614e-3827-4860-819c-b9474a000dbb", // implicit playlist
+      // "3751614e-3827-4860-819c-b9474a000dbb", // TODO: implicit playlist
       "https://tidal.com/browse/playlist/3751614e-3827-4860-819c-b9474a000dbb",
       "https://listen.tidal.com/playlist/3751614e-3827-4860-819c-b9474a000dbb",
       "https://embed.tidal.com/playlist/3751614e-3827-4860-819c-b9474a000dbb",
-      // "0104f851efc2d5803c03c6706572aa", // implicit mix
+      // "0104f851efc2d5803c03c6706572aa", // TODO: implicit mix
       "https://tidal.com/browse/mix/0104f851efc2d5803c03c6706572aa",
       "https://listen.tidal.com/mix/0104f851efc2d5803c03c6706572aa",
       "https://embed.tidal.com/mix/0104f851efc2d5803c03c6706572aa",
@@ -69,7 +69,7 @@ describe("app", function () {
           .post("/url")
           .send(hashCash(body))
           .expect("Content-Type", /^application\/json/)
-          .expect(400, { error: "Missing or invalid 'playlist_url'" })
+          .expect(400, { error: "Invalid 'playlist_url'" })
           .end(done)
       })
     }
@@ -104,7 +104,7 @@ describe("app", function () {
       request(app)
         .post("/url")
         .send(
-          "playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F3751614e-3827-4860-819c-b9474a000dbb&date=Sat+May+01+2021+22%3A06%3A15+GMT-0700+%28PDT%29"
+          "playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F3751614e-3827-4860-819c-b9474a000dbb&date=Sat%20May%2001%202021%2022%3A06%3A15%20GMT-0700%20(PDT)&nonce=2362"
         )
         .expect("Content-Type", /^application\/json/)
         .expect(403, { error: "Time skew too large" })
