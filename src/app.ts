@@ -10,10 +10,14 @@ import { processPlaylist, defaultPythonPath } from "./model.js"
 import { importFromURLParsed, makeEmbedUrl } from "./parse.js"
 import { VERSION } from "./version.js"
 import { verify } from "./hashcash.js"
+import NodeCache from "node-cache"
 
 const SAFE_URL = /^https:\/\/(listen\.|embed\.)?tidal\.com\//
 const DEFAULT_VERSION_TIMEOUT = "60"
 const UNKNOWN_ARTIST_MIX = "005002a0ac4ea84e66f2476d2857c6"
+
+// Cache recommendation responses for 1 hour to lessen the load on the ML model
+const urlCache = new NodeCache({ stdTTL: 60 * 60, useClones: false })
 
 export const app = express()
 
@@ -84,15 +88,22 @@ app.post(
       throw new HTTPError("Invalid 'playlist_url'", HTTPStatusCode.BAD_REQUEST)
     }
 
-    importFromURLParsed(playlist_url)
-      .then((playlist) => processPlaylist(playlist, { update: !!update }))
-      .then((rec) => {
-        console.debug("Recommendation:", rec)
-        // Turn playlist IDs into valid URLs before returning to the client
-        rec.playlists = (rec.playlists || [UNKNOWN_ARTIST_MIX]).map(makeEmbedUrl)
-        res.send(rec)
-      })
-      .catch(next)
+    const cachedResponse = urlCache.get(playlist_url)
+    if (cachedResponse === undefined) {
+      importFromURLParsed(playlist_url)
+        .then((playlist) => processPlaylist(playlist, { update: !!update }))
+        .then((rec) => {
+          console.debug("Recommendation:", rec)
+          // Turn playlist IDs into valid URLs before returning to the client
+          rec.playlists = (rec.playlists || [UNKNOWN_ARTIST_MIX]).map(makeEmbedUrl)
+          urlCache.set(playlist_url, rec)
+          res.send(rec)
+        })
+        .catch(next)
+    } else {
+      // Return the cached response as is
+      res.send(cachedResponse)
+    }
   }
 )
 
