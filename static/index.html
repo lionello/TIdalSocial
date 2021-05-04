@@ -9,7 +9,7 @@
     <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
     <meta name="msapplication-TileColor" content="#2b5797" />
     <meta name="theme-color" content="#ffffff" />
-    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue@2.6.12/dist/vue.min.js"></script>
     <script src="https://unpkg.com/http-vue-loader"></script>
     <script type="module" src="/js/sync.js"></script>
     <style>
@@ -78,6 +78,7 @@
         name="playlist_url"
         placeholder="Paste a playlist or mix URL here to get recommendations"
         autocomplete="off"
+        spellcheck="false"
         autofocus
         size="70"
       />
@@ -94,8 +95,8 @@
 
     <div class="footer">
       <p>
-        Copyright (c) 2021 Lionello Lunesu. This project is not affiliated with TIDAL or
-        ASPIRO AB.
+        Copyright © 2021 Lionello Lunesu. This project is not affiliated with TIDAL or
+        Aspiro AB.
       </p>
     </div>
 
