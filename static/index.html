@@ -1,128 +1,141 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>TIdaL Social Test Page</title>
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
-    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
-    <meta name="msapplication-TileColor" content="#2b5797">
-    <meta name="theme-color" content="#ffffff">
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5" />
+    <meta name="msapplication-TileColor" content="#2b5797" />
+    <meta name="theme-color" content="#ffffff" />
     <script src="https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js"></script>
     <script src="https://unpkg.com/http-vue-loader"></script>
     <script type="module" src="/js/sync.js"></script>
     <style>
-        body {
-            background-color: #17171a;
-            color: rgb(255,255,255);
-            font-family: nationale,nationale-regular,Helvetica,sans-serif;
-            text-align: center;
-        }
-        button, input, select, textarea {
-            margin: 0;
-            font-size: 100%;
-        }
-        input {
-            border: 1px solid rgba(235,235,255,0.05);
-            border-radius: 12px;
-            color: rgb(252,252,252);
-            background-color: rgb(34,34,38);
+      body {
+        background-color: #17171a;
+        color: rgb(255, 255, 255);
+        font-family: nationale, nationale-regular, Helvetica, sans-serif;
+        text-align: center;
+      }
+      button,
+      input,
+      select,
+      textarea {
+        margin: 0;
+        font-size: 100%;
+      }
+      input {
+        border: 1px solid rgba(235, 235, 255, 0.05);
+        border-radius: 12px;
+        color: rgb(252, 252, 252);
+        background-color: rgb(34, 34, 38);
 
-            height: 40px;
-            padding: 0px 8px;
-            margin: auto;
-            display: block;
-        }
-        input:focus {
-            color: rgb(0,0,0);
-            background-color: rgba(252,252,252);
-            border: 1px solid rgba(235,235,255,0.05);
-            outline: none;
-        }
-        input[type="submit"] {
-            visibility: hidden;
-        }
-        article {
-            padding: 10px;
-            float: left;
-        }
-        h3 {
-            letter-spacing: 0.5em;
-            line-height: 100%;
-            text-align: center;
-        }
-        img.logo {
-            vertical-align: middle;
-            height: 2em;
-        }
-        div.footer {
-            position: fixed;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            color: gray;
-        }
+        height: 40px;
+        padding: 0px 8px;
+        margin: auto;
+        display: block;
+      }
+      input:focus {
+        color: rgb(0, 0, 0);
+        background-color: rgba(252, 252, 252);
+        border: 1px solid rgba(235, 235, 255, 0.05);
+        outline: none;
+      }
+      input[type="submit"] {
+        visibility: hidden;
+      }
+      article {
+        padding: 10px;
+        float: left;
+      }
+      h3 {
+        letter-spacing: 0.5em;
+        line-height: 100%;
+        text-align: center;
+      }
+      img.logo {
+        vertical-align: middle;
+        height: 2em;
+      }
+      div.footer {
+        position: fixed;
+        left: 0;
+        bottom: 0;
+        width: 100%;
+        color: gray;
+      }
     </style>
-</head>
-<body>
-    <h3><img class="logo" src="/favicon.svg"> TIDAL SOCIAL</h3>
+  </head>
+  <body>
+    <h3><img class="logo" src="/favicon.svg" /> TIDAL SOCIAL</h3>
     <form id="form1" method="POST" action="/url">
-        <input type="url" required id="playlist_url" name="playlist_url" placeholder="Paste a playlist or mix URL here to get recommendations" autocomplete="off" autofocus size="70">
-        <input type="submit">
+      <input
+        type="url"
+        required
+        id="playlist_url"
+        name="playlist_url"
+        placeholder="Paste a playlist or mix URL here to get recommendations"
+        autocomplete="off"
+        autofocus
+        size="70"
+      />
+      <input type="submit" />
     </form>
 
     <div id="app">
-        <section id="example-1">
-            <article v-for="item in items" :key="item">
-                <tidal :src="item"></tidal>
-            </article>
-        </section>
+      <section id="example-1">
+        <article v-for="item in items" :key="item">
+          <tidal :src="item"></tidal>
+        </article>
+      </section>
     </div>
 
     <div class="footer">
-        <p>Copyright (c) 2021 Lionello Lunesu. This project is not affiliated with TIDAL or ASPIRO AB.</p>
+      <p>
+        Copyright (c) 2021 Lionello Lunesu. This project is not affiliated with TIDAL or
+        ASPIRO AB.
+      </p>
     </div>
 
     <script>
-    var app = new Vue({
-        el: '#app',
+      var app = new Vue({
+        el: "#app",
         data: {
-            items: []
+          items: [],
         },
         components: {
-            'tidal': window.httpVueLoader('/components/Tidal.vue')
+          tidal: window.httpVueLoader("/components/Tidal.vue"),
         },
-    });
-    function hashCash(body, nonce=0, limit=5) {
+      })
+      function hashCash(body, nonce = 0, limit = 5) {
         if (!window.crypto || !window.crypto.subtle || !window.crypto.subtle.digest) {
-            return body;
+          return body
         }
-        body.set("nonce", nonce);
-        const buffer = new TextEncoder("utf-8").encode(body.toString());
-        return window.crypto.subtle.digest("SHA-256", buffer)
-            .then(function(ab) {
-                if (new DataView(ab).getUint16(0) < limit)
-                    return body;
-                return hashCash(body, 1 + nonce, limit);
-            });
-    }
-    function handleSubmit(e) {
-        e.preventDefault();
-        document.getElementById("playlist_url").blur();
-        app.items = ['','',''];
-        const fd = new FormData(e.target);
-        const body = new URLSearchParams(fd);
-        body.set("date", new Date);
+        body.set("nonce", nonce)
+        const buffer = new TextEncoder("utf-8").encode(body.toString())
+        return window.crypto.subtle.digest("SHA-256", buffer).then(function (ab) {
+          if (new DataView(ab).getUint16(0) < limit) return body
+          return hashCash(body, 1 + nonce, limit)
+        })
+      }
+      function handleSubmit(e) {
+        e.preventDefault()
+        document.getElementById("playlist_url").blur()
+        app.items = ["", "", ""]
+        const fd = new FormData(e.target)
+        const body = new URLSearchParams(fd)
+        body.set("date", new Date())
         hashCash(body)
-            .then(body => fetch("/url", {method: "post", body}))
-            .then(res => res.json())
-            .then(result => {
-                app.items = result.playlists;
-            });
-        return false;
-    }
-    document.getElementById("form1").addEventListener("submit", handleSubmit);
+          .then((body) => fetch("/url", { method: "post", body }))
+          .then((res) => res.json())
+          .then((result) => {
+            app.items = result.playlists
+          })
+        return false
+      }
+      document.getElementById("form1").addEventListener("submit", handleSubmit)
     </script>
-</body>
+  </body>
 </html>
