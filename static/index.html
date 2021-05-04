@@ -137,6 +137,10 @@
         return false
       }
       document.getElementById("form1").addEventListener("submit", handleSubmit)
+      function selectText(e) {
+        setTimeout(() => e.target.setSelectionRange(0, e.target.value.length))
+      }
+      document.getElementById("playlist_url").addEventListener("focus", selectText)
     </script>
   </body>
 </html>
