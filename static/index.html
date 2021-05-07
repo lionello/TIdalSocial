@@ -143,7 +143,8 @@
           .then((body) => fetch("/url", { method: "post", body }))
           .then((res) => res.json())
           .then((result) => {
-            app.items = result.playlists.map(makeEmbedUrl)
+            if (result.error) console.error(result.error)
+            app.items = (result.playlists || []).map(makeEmbedUrl)
           })
         return false
       }
