@@ -6,7 +6,12 @@ import qs from "qs"
 import { fileURLToPath } from "url"
 
 import { HTTPError, HTTPStatusCode } from "./error.js"
-import { processPlaylist, defaultPythonPath, UNKNOWN_ARTIST_MIX } from "./model.js"
+import {
+  processPlaylist,
+  defaultPythonPath,
+  UNKNOWN_ARTIST_MIX,
+  ping,
+} from "./model.js"
 import { importFromURLParsed } from "./parse.js"
 import { VERSION } from "./version.js"
 import { verify } from "./hashcash.js"
@@ -123,6 +128,14 @@ app.post("/py", (req, res, next) => {
     if (err) next(err)
     else res.send(stdin + stderr)
   })
+})
+
+app.get("/health", (req, res, next) => {
+  ping()
+    .then(() => {
+      res.status(204).send()
+    })
+    .catch(next)
 })
 
 // Custom error handler

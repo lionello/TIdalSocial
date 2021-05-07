@@ -1,7 +1,7 @@
 import { assert } from "chai"
 import { describe, it } from "mocha"
 
-import { processPlaylist, saveModel } from "../src/model.js"
+import { ping, processPlaylist, saveModel } from "../src/model.js"
 
 describe("model", function () {
   it("processPlaylist", async function () {
@@ -19,5 +19,9 @@ describe("model", function () {
 
   it("saveModel", async function () {
     await saveModel()
+  })
+
+  it("ping", async function () {
+    await ping()
   })
 })

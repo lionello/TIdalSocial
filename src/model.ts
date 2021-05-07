@@ -63,6 +63,14 @@ export async function saveModel(): Promise<void> {
   }
 }
 
+export async function ping(): Promise<void> {
+  if (isOffline()) return
+  const response = await fetch(`${MODEL_HOST}/ping`, { method: "GET" })
+  if (response.status !== 204) {
+    throw new HTTPError(await response.text())
+  }
+}
+
 export const defaultPythonPath = process.platform != "win32" ? "python3" : "py"
 
 export function start(): void {

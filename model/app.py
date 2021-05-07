@@ -56,6 +56,11 @@ def index():
     return app.send_static_file("index.html")
 
 
+@app.route("/ping")
+def ping():
+    return "", 204
+
+
 @app.route("/playlist", methods=["POST"])
 def playlist():
     global model
