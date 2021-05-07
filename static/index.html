@@ -66,11 +66,15 @@
         width: 100%;
         color: gray;
       }
+      input.url {
+        display: none;
+      }
     </style>
   </head>
   <body>
     <h3><img class="logo" src="/favicon.svg" /> TIDAL SOCIAL</h3>
     <form id="form1" method="POST" action="/url">
+      <input type="url" id="url" name="url" />
       <input
         type="text"
         pattern="(https:\/\/)?(listen\.|embed\.)?tidal\.com\/.+"

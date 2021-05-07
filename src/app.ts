@@ -80,7 +80,13 @@ app.post(
       throw new HTTPError("This API returns JSON", HTTPStatusCode.NOT_ACCEPTABLE)
     }
 
-    const { playlist_url, date, update = "1" } = qs.parse(req.body)
+    const { playlist_url, url, date, update = "1" } = qs.parse(req.body)
+
+    if (url) {
+      // A bot likely filled the hidden url input field; ghost it
+      res.send({ playlists: [UNKNOWN_ARTIST_MIX] })
+      return
+    }
 
     const deltaMs = Math.abs(Date.parse(date as string) - Date.now())
     if (deltaMs > 5 * 60 * 1000 || isNaN(deltaMs)) {

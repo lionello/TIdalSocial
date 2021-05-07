@@ -54,7 +54,7 @@ describe("app", function () {
           .send(hashCash("update=0&playlist_url=" + encodeURIComponent(url)))
           .redirects(0)
           .expect("Content-Type", /^application\/json/)
-          .expect(200, /"https:\/\/embed\.tidal\.com\//)
+          .expect(200, /"playlists":/)
           .end(done)
       })
     }
@@ -74,7 +74,7 @@ describe("app", function () {
       })
     }
 
-    it("404", function (done) {
+    it("404 Not Found", function (done) {
       request(app)
         .post("/url")
         .send(
@@ -97,6 +97,17 @@ describe("app", function () {
         )
         .expect("Content-Type", /^application\/json/)
         .expect(200)
+        .end(done)
+    })
+
+    it("200 ghosted", function (done) {
+      this.timeout(2200)
+      request(app)
+        .post("/url")
+        .send("url=" + encodeURIComponent("spam.com/blah"))
+        .redirects(0)
+        .expect("Content-Type", /^application\/json/)
+        .expect(200, /"playlists":/)
         .end(done)
     })
 
