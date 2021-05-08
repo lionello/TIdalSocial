@@ -67,7 +67,10 @@ async function importFromURL(url: string): Promise<PageInfo> {
     const dom = await jsdom.JSDOM.fromURL(url)
     return parsePlaylistDocument(dom.window.document)
   } catch (err) {
-    throw new HTTPError("Not Found", err.statusCode)
+    const e = new jsdom.JSDOM(err.error)
+    const msg =
+      e.window.document.getElementsByTagName("p")?.item(0)?.textContent || "Not Found"
+    throw new HTTPError(msg, err.statusCode)
   }
 }
 
