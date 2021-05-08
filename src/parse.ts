@@ -61,10 +61,12 @@ export function parsePlaylistDocument(playlist: Document): PageInfo {
   return { title, tracks }
 }
 
+const cookieJar = new jsdom.CookieJar()
+
 async function importFromURL(url: string): Promise<PageInfo> {
   if (isOffline()) throw new HTTPError("Offline", HTTPStatusCode.NOT_FOUND)
   try {
-    const dom = await jsdom.JSDOM.fromURL(url)
+    const dom = await jsdom.JSDOM.fromURL(url, { runScripts: "dangerously", cookieJar })
     return parsePlaylistDocument(dom.window.document)
   } catch (err) {
     const e = new jsdom.JSDOM(err.error)
