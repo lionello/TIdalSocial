@@ -1,6 +1,8 @@
 import { promises as FS } from "fs"
 import * as Path from "path"
 import * as jsdom from "jsdom"
+import { getRandom } from "random-useragent"
+
 import { Track, TrackList } from "./model"
 import { HTTPError, HTTPStatusCode } from "./error.js"
 import { isOffline } from "./offline.js"
@@ -61,12 +63,40 @@ export function parsePlaylistDocument(playlist: Document): PageInfo {
   return { title, tracks }
 }
 
+function beforeParse(window: jsdom.DOMWindow) {
+  window.HTMLCanvasElement.prototype.getContext = () => {
+    throw Error("blah")
+  }
+}
+
+class CustomResourceLoader extends jsdom.ResourceLoader {
+  fetch(url, options) {
+    // if (options.element) {
+    //   console.log(`Element ${options.element.localName} is requesting the url ${url}`)
+    // } else {
+    //   console.log(`Requesting the url ${url}`)
+    // }
+    if (url.startsWith("https://www.google")) return null
+    if (url.startsWith("https://tidal.com/browse/_nuxt/")) return null
+    return super.fetch(url, options)
+  }
+}
+
 const cookieJar = new jsdom.CookieJar()
 
 async function importFromURL(url: string): Promise<PageInfo> {
   if (isOffline()) throw new HTTPError("Offline", HTTPStatusCode.NOT_FOUND)
   try {
-    const dom = await jsdom.JSDOM.fromURL(url, { runScripts: "dangerously", cookieJar })
+    const options: jsdom.BaseOptions = {
+      cookieJar,
+      pretendToBeVisual: true,
+      runScripts: "dangerously",
+      userAgent: getRandom(), // gets a random user agent string
+      beforeParse,
+      resources: new CustomResourceLoader(),
+    }
+    const dom = await jsdom.JSDOM.fromURL(url, options)
+    dom.window.close()
     return parsePlaylistDocument(dom.window.document)
   } catch (err) {
     const e = new jsdom.JSDOM(err.error)
