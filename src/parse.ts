@@ -52,7 +52,10 @@ type PageInfo = {
   tracks: Track[]
 }
 
-export function parsePlaylistDocument(playlist: Document): PageInfo {
+export function parsePlaylistDocument(playlist?: Document): PageInfo {
+  if (!playlist) {
+    throw Error("Missing playlist document")
+  }
   const title = playlist
     .getElementsByClassName(
       "font-size-large font-size-medium-lg-max margin-bottom-0"
@@ -64,9 +67,7 @@ export function parsePlaylistDocument(playlist: Document): PageInfo {
 }
 
 function beforeParse(window: jsdom.DOMWindow) {
-  window.HTMLCanvasElement.prototype.getContext = () => {
-    throw Error("blah")
-  }
+  window.HTMLCanvasElement.prototype.getContext = () => null
 }
 
 class CustomResourceLoader extends jsdom.ResourceLoader {
@@ -84,26 +85,38 @@ class CustomResourceLoader extends jsdom.ResourceLoader {
 
 const cookieJar = new jsdom.CookieJar()
 
-async function importFromURL(url: string): Promise<PageInfo> {
+async function fromURL(url: string): Promise<Document> {
   if (isOffline()) throw new HTTPError("Offline", HTTPStatusCode.NOT_FOUND)
+
+  const resources = new CustomResourceLoader({
+    proxy: "http://proxy.tidalsocial.com:9001",
+    // strictSSL: false,
+  })
+  const options: jsdom.BaseOptions = {
+    beforeParse,
+    cookieJar,
+    pretendToBeVisual: true,
+    resources,
+    // runScripts: "dangerously",
+    userAgent: getRandom(),
+  }
+
   try {
-    const options: jsdom.BaseOptions = {
-      cookieJar,
-      pretendToBeVisual: true,
-      runScripts: "dangerously",
-      userAgent: getRandom(), // gets a random user agent string
-      beforeParse,
-      resources: new CustomResourceLoader(),
-    }
     const dom = await jsdom.JSDOM.fromURL(url, options)
-    dom.window.close()
-    return parsePlaylistDocument(dom.window.document)
+    // dom.window.close()
+    return dom.window.document
   } catch (err) {
+    console.debug(err.statusCode || err.message)
     const e = new jsdom.JSDOM(err.error)
     const msg =
       e.window.document.getElementsByTagName("p")?.item(0)?.textContent || "Not Found"
     throw new HTTPError(msg, err.statusCode)
   }
+}
+
+async function importFromURL(url: string): Promise<PageInfo> {
+  const document = await fromURL(url)
+  return parsePlaylistDocument(document)
 }
 
 function importFromString(html: string): PageInfo {

@@ -35,7 +35,7 @@ describe("parse", function () {
     it("parse URL " + url, async function () {
       const songs = await importFromURLParsed(url, true)
       assert.isNotEmpty(songs.tracks)
-      assert.strictEqual(songs.url, url)
+      assert.isNotEmpty(songs.url)
       assert.strictEqual(songs.id, "b02d5fef-afed-4fd7-9d61-f74a5058e501")
     })
   }
