@@ -1,9 +1,10 @@
 {
   "name": "tidalsocial",
   "version": "1.5.6",
-  "description": "Tidal Social",
+  "description": "Tidal Social Recommender System",
   "main": "dist/src/index.js",
   "private": true,
+  "repository": "github:lionello/TIdaLSocial",
   "type": "module",
   "engines": {
     "node": "^14.0"
@@ -14,13 +15,18 @@
     "clean": "git clean -xf -- dist",
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "dev": "nodemon .",
-    "docker-build": "npm run build && docker build . -t lionello/$npm_package_name:latest",
+    "predocker:build": "npm run build",
+    "docker:build": "docker build . -t lionello/$npm_package_name:latest",
+    "docker:push": "docker push lionello/$npm_package_name:latest",
+    "predocker:tag": "npm run docker:build",
+    "docker:tag": "docker tag lionello/$npm_package_name:latest lionello/$npm_package_name:$npm_package_version",
     "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
-    "start": "node .",
-    "test": "mocha dist/tests",
     "prestart": "npm run build-ts",
+    "start": "node .",
     "pretest": "npm run build-ts",
+    "test": "mocha dist/tests",
     "version": "echo export const VERSION = \\\"$npm_package_version\\\" >src/version.ts && git add src/version.ts",
+    "postversion": "npm run docker:tag",
     "watch-ts": "tsc -w"
   },
   "author": "Lionello Lunesu",
