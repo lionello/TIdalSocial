@@ -21,3 +21,10 @@ For more details about the inner working of the algorithm, please check the exce
 
 The frontend is written in HTML and [TypeScript](https://www.typescriptlang.org) and uses [Vue.js](https://vuejs.org) and is served by [ExpressJS](https://expressjs.com).
 The backend is also written in TypeScript, runs on [NodeJS](https://nodejs.org/), but `POST`s requests to a local Python 3 [Flask](https://flask.palletsprojects.com/en/1.1.x/) server for the actual recommendations. I'm using ECMAScript Modules (ESM) to allow the generated JavaScript to work in the browser as well as on NodeJS.
+
+## Development
+```
+nix-shell
+#source .venv/bin/activate
+pip install -r requirements.txt
+```
