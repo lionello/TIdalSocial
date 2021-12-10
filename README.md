@@ -23,8 +23,30 @@ The frontend is written in HTML and [TypeScript](https://www.typescriptlang.org)
 The backend is also written in TypeScript, runs on [NodeJS](https://nodejs.org/), but `POST`s requests to a local Python 3 [Flask](https://flask.palletsprojects.com/en/1.1.x/) server for the actual recommendations. I'm using ECMAScript Modules (ESM) to allow the generated JavaScript to work in the browser as well as on NodeJS.
 
 ## Development
+Use `direnv` with the following `.envrc`:
+```
+use nix
+export PATH=$PATH:$PWD/node_modules/.bin
+layout python
+```
+
+Or, without direnv:
+```
+nix-shell --pure
+npm install
+source .venv/bin/activate # or whichever venv you want
+pip install -r requirements.txt
+```
+
+## Test
 ```
 nix-shell
-#source .venv/bin/activate
-pip install -r requirements.txt
+npm test
+python -m unittest discover -s model
+```
+
+## Run
+```
+nix-shell
+npm start
 ```
