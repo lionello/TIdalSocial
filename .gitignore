@@ -13,3 +13,4 @@ db/
 /playlists.json
 /.vscode
 .nyc_output/
+coverage/

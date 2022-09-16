@@ -10,3 +10,4 @@ model/tests/
 Dockerfile
 db/
 .nyc_output/
+coverage/
