@@ -6,15 +6,18 @@ import { getRandom } from "random-useragent"
 import { Track, TrackList } from "./model"
 import { HTTPError, HTTPStatusCode } from "./error.js"
 import { isOffline } from "./offline.js"
+import { getenv } from "./utils.js"
 
 const PROJECT_ROOT = "."
-const STORAGE_FOLDER = process.env.STORAGE_FOLDER || PROJECT_ROOT
+const STORAGE_FOLDER = getenv("STORAGE_FOLDER", PROJECT_ROOT)
 const DB_FOLDER = "db"
 const CACHE_FOLDER = "cache"
 const TIDAL_URL_REGEX = /([^/]+)s?\/([^/]+)$/
 const TRIM_REGEX = /^\s+|\s+\[[^\]]+\]|\s+\([^)]+\)|\s+$/g
 const BASE_URL = "https://tidal.com/"
 const BROWSE_URL_PREFIX = "https://tidal.com/browse/"
+const DEFAULT_PROXY = "http://proxy.tidalsocial.com:9001" // privoxy running on xs
+export const HTTPS_PROXY = getenv("https_proxy", DEFAULT_PROXY)
 
 function makeAbs(url: string): string {
   return new URL(url, BASE_URL).href
@@ -89,7 +92,7 @@ async function fromURL(url: string): Promise<Document> {
   if (isOffline()) throw new HTTPError("Offline", HTTPStatusCode.NOT_FOUND)
 
   const resources = new CustomResourceLoader({
-    proxy: "http://proxy.tidalsocial.com:9001",
+    proxy: HTTPS_PROXY,
     // strictSSL: false,
   })
   const options: jsdom.BaseOptions = {

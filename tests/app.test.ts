@@ -2,9 +2,15 @@ import { describe, it } from "mocha"
 import request from "supertest"
 import { app } from "../src/app.js"
 import { verify } from "../src/hashcash.js"
+import { sleep } from "../src/utils.js"
 import { VERSION } from "../src/version.js"
 
 describe("app", function () {
+  before(async () => {
+    // Wait for the Python model to load
+    await sleep(500);
+  })
+
   describe("GET (static)", function () {
     for (const path of [
       "/",
@@ -29,7 +35,7 @@ describe("app", function () {
     }
   })
 
-  function hashCash(body: string, date: string = new Date().toString()): string {
+  function withHashCash(body: string, date: string = new Date().toString()): string {
     const form = body + "&date=" + encodeURIComponent(date)
     for (let nonce = 0; ; nonce++) {
       body = form + "&nonce=" + nonce
@@ -51,7 +57,7 @@ describe("app", function () {
       it(url, function (done) {
         request(app)
           .post("/url")
-          .send(hashCash("update=0&playlist_url=" + encodeURIComponent(url)))
+          .send(withHashCash("update=0&playlist_url=" + encodeURIComponent(url)))
           .redirects(0)
           .expect("Content-Type", /^application\/json/)
           .expect(200, /"playlists":/)
@@ -67,7 +73,7 @@ describe("app", function () {
       it(body, function (done) {
         request(app)
           .post("/url")
-          .send(hashCash(body))
+          .send(withHashCash(body))
           .expect("Content-Type", /^application\/json/)
           .expect(400, { error: "Invalid 'playlist_url'" })
           .end(done)
@@ -78,7 +84,7 @@ describe("app", function () {
       request(app)
         .post("/url")
         .send(
-          hashCash(
+          withHashCash(
             "playlist_url=https%3A%2F%2Ftidal.com%2Fplaylist%2F12341234-1234-1234"
           )
         )

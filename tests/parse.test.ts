@@ -6,6 +6,7 @@ import {
   getPlaylistURL,
   getArtistURL,
   getMixURL,
+  HTTPS_PROXY,
 } from "../src/parse.js"
 
 const PLAYLIST_IDS = [
@@ -27,18 +28,20 @@ describe("parse", function () {
     assert.equal(getMixURL("foo"), "https://tidal.com/browse/mix/foo")
   })
 
-  for (const url of [
-    "tidal.com/browse/playlist/b02d5fef-afed-4fd7-9d61-f74a5058e501",
-    "https://listen.tidal.com/playlist/b02d5fef-afed-4fd7-9d61-f74a5058e501",
-    "https://tidal.com/browse/playlist/b02d5fef-afed-4fd7-9d61-f74a5058e501",
-  ]) {
-    it("parse URL " + url, async function () {
-      const songs = await importFromURLParsed(url, true)
-      assert.isNotEmpty(songs.tracks)
-      assert.isNotEmpty(songs.url)
-      assert.strictEqual(songs.id, "b02d5fef-afed-4fd7-9d61-f74a5058e501")
-    })
-  }
+  describe(`https_proxy=${HTTPS_PROXY}`, function () {
+    for (const url of [
+      "tidal.com/browse/playlist/b02d5fef-afed-4fd7-9d61-f74a5058e501",
+      "https://listen.tidal.com/playlist/b02d5fef-afed-4fd7-9d61-f74a5058e501",
+      "https://tidal.com/browse/playlist/b02d5fef-afed-4fd7-9d61-f74a5058e501",
+    ]) {
+      it(`parse URL ${url}`, async function () {
+        const songs = await importFromURLParsed(url, true)
+        assert.isNotEmpty(songs.tracks)
+        assert.isNotEmpty(songs.url)
+        assert.strictEqual(songs.id, "b02d5fef-afed-4fd7-9d61-f74a5058e501")
+      })
+    }
+  })
 
   describe("from cache", function () {
     let prevMode: boolean
