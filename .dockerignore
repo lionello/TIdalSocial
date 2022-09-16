@@ -9,3 +9,4 @@ model/__pycache__/
 model/tests/
 Dockerfile
 db/
+.nyc_output/

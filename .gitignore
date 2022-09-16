@@ -12,3 +12,4 @@ db/
 /artists.json
 /playlists.json
 /.vscode
+.nyc_output/
