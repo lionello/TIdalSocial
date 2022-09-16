@@ -35,7 +35,8 @@ Or, without direnv:
 nix-shell --pure
 npm install
 source .venv/bin/activate # or whichever venv you want
-pip install -r requirements.txt
+# For some reason CMAKE ignores the CXX from mkShell and insists on using clang
+CC=$CXX pip install -r requirements.txt
 ```
 
 ## Test
