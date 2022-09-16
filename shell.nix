@@ -8,7 +8,7 @@ let
   # python3gcc = python3.override { callPackage = callPackage'; };#Attrs (_: { stdenv = gcc8Stdenv; });
   #python3' = python3.withPackages(ps: with ps; [ (implicit ps) (nmslib ps) h5py numpy annoy ipykernel flask black ]);
   python37gcc = python37.override { stdenv = gccStdenv; };
-  python37' = python37.withPackages (ps: with ps; [ poetry ]);
+  python37' = python37.withPackages (ps: with ps; [ setuptools /*poetry*/ ]);
   python27' = python27.withPackages (ps: with ps; [ virtualenv numpy ]);
 in
 mkShell {
@@ -23,7 +23,7 @@ mkShell {
     #openmp
     overmind
     #poetry.python
-    python37
+    python37'
   ] ++ lib.optionals stdenv.isDarwin [
     darwin.apple_sdk.frameworks.Accelerate
     darwin.apple_sdk.frameworks.IOKit
