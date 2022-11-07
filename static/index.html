@@ -69,6 +69,26 @@
       #url {
         display: none;
       }
+      .alert {
+        padding: 20px;
+        background-color: #f44336; /* Red */
+        color: white;
+        margin-bottom: 15px;
+        display: none;
+      }
+      .closebtn {
+        margin-left: 15px;
+        color: white;
+        font-weight: bold;
+        float: right;
+        font-size: 22px;
+        line-height: 20px;
+        cursor: pointer;
+        transition: 0.3s;
+      }
+      .closebtn:hover {
+        color: black;
+      }
     </style>
   </head>
   <body>
@@ -96,6 +116,11 @@
           <tidal :src="item"></tidal>
         </article>
       </section>
+    </div>
+
+    <div class="alert">
+      <span class="closebtn" onclick="this.parentElement.style.display='none';">&times;</span>
+      <span id="errmsg">This is an alert box.</span>
     </div>
 
     <div class="footer">
@@ -136,6 +161,11 @@
             return "https://embed.tidal.com/artist/" + id
         }
       }
+      function onError(err) {
+        console.error(err)
+        document.getElementById("errmsg").innerHTML = err
+        document.querySelector(".alert").style.display = "block"
+      }
       function handleSubmit(e) {
         e.preventDefault()
         document.getElementById("playlist_url").blur()
@@ -147,8 +177,11 @@
           .then((body) => fetch("/url", { method: "post", body }))
           .then((res) => res.json())
           .then((result) => {
-            if (result.error) console.error(result.error)
+            if (result.error) onError(result.error)
             app.items = (result.playlists || []).map(makeEmbedUrl)
+          })
+          .catch((err) => {
+            onError(err.message || err)
           })
         return false
       }
