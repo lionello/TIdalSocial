@@ -1,5 +1,5 @@
 import { exec } from "child_process"
-import express from "express"
+import express, { NextFunction, Request, Response } from "express"
 import helmet from "helmet"
 import * as Path from "path"
 import qs from "qs"
@@ -37,10 +37,10 @@ function makeAbsolute(relative: string): string {
 }
 
 function safeSetTimeout(
-  req,
-  callback: (...args: any[]) => void,
+  req: Request,
+  callback: (...args: unknown[]) => void,
   ms?: number,
-  ...args: any[]
+  ...args: unknown[]
 ): void {
   const timer = setTimeout(callback, ms, ...args)
   // Abandon the timer when the client disconnects
@@ -61,9 +61,9 @@ app.use(helmet({ contentSecurityPolicy: false }))
 //   })
 // )
 
-function verifyOrDelay(req, res, next) {
+function verifyOrDelay(req: Request, _res: Response, next: NextFunction): unknown {
   if (verify(req.body)) {
-    // HashCash verification passed; proceed
+    // HashCash verification passed; proceed immediately
     next()
     return
   }
@@ -129,14 +129,14 @@ app.use("/js", express.static(makeAbsolute(".")))
 
 app.use(express.static(makeAbsolute("../../static")))
 
-app.post("/py", (req, res, next) => {
+app.post("/py", (_req, res, next) => {
   exec(defaultPythonPath + " --version", (err, stdin, stderr) => {
     if (err) next(err)
     else res.send(stdin + stderr)
   })
 })
 
-app.get("/health", (req, res, next) => {
+app.get("/health", (_req, res, next) => {
   ping()
     .then(() => {
       res.status(204).send()
