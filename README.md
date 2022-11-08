@@ -51,3 +51,9 @@ python -m unittest discover -s model
 nix-shell
 npm start
 ```
+
+## Publish
+```
+npm version patch # or minor, or major
+npm run docker:push
+```
