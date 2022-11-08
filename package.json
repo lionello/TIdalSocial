@@ -1,6 +1,6 @@
 {
   "name": "tidalsocial",
-  "version": "1.5.7",
+  "version": "1.5.8",
   "description": "Tidal Social Recommender System",
   "main": "dist/src/index.js",
   "private": true,
@@ -16,7 +16,7 @@
     "coverage": "nyc -r lcov -e .ts -x \"*.test.ts\" npm run test",
     "dev": "nodemon .",
     "predocker:build": "npm run build",
-    "docker:build": "docker build . -t lionello/$npm_package_name:latest",
+    "docker:build": "docker build . -t lionello/$npm_package_name:latest --platform linux/amd64",
     "docker:push": "docker push lionello/$npm_package_name:latest",
     "predocker:tag": "npm run docker:build",
     "docker:tag": "docker tag lionello/$npm_package_name:latest lionello/$npm_package_name:$npm_package_version",
