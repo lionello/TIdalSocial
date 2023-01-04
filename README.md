@@ -24,14 +24,14 @@ The backend is also written in TypeScript, runs on [NodeJS](https://nodejs.org/)
 
 ## Development
 Use `direnv` with the following `.envrc`:
-```
-use nix
+```sh
+use flake
 export PATH=$PATH:$PWD/node_modules/.bin
 layout python
 ```
 
 Or, without direnv:
-```
+```sh
 nix-shell --pure
 npm install
 source .venv/bin/activate # or whichever venv you want
@@ -40,20 +40,20 @@ CC=$CXX pip install -r requirements.txt
 ```
 
 ## Test
-```
+```sh
 nix-shell
 npm test
 python -m unittest discover -s model
 ```
 
 ## Run
-```
+```sh
 nix-shell
 npm start
 ```
 
 ## Publish
-```
+```sh
 npm version patch # or minor, or major
 npm run docker:push
 ```
